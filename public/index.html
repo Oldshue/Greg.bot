@@ -51,13 +51,16 @@
     }
     
     .chat-container {
-        position: absolute;
-        top: 60px;
-        height: calc(100vh - 60px - 90px);
-        width: 100%;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
+    position: fixed;
+    height: calc(100% - 150px);
+    width: 100%;
+    top: 60px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
 
     .input-container {
         position: absolute;
@@ -433,13 +436,18 @@
             navigator.virtualKeyboard.overlaysContent = true;
         }
 
-     window.visualViewport?.addEventListener('resize', () => {
+    window.visualViewport?.addEventListener('resize', () => {
     const viewport = window.visualViewport;
-    const keyboardHeight = window.innerHeight - viewport.height;
-    document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
-    document.documentElement.style.height = `${viewport.height}px`;
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-});
+    const container = document.querySelector('.chat-container');
+    const input = document.querySelector('.input-container');
+    
+    if (viewport.height < window.innerHeight) {
+        container.style.height = `${viewport.height - 110}px`;
+        input.style.bottom = `${window.innerHeight - viewport.height}px`;
+    } else {
+        container.style.height = 'calc(100% - 150px)';
+        input.style.bottom = '0';
+    }
     
     requestAnimationFrame(() => {
         chatContainer.scrollTop = chatContainer.scrollHeight;
