@@ -43,15 +43,17 @@
         }
 
         .chat-container {
-            position: fixed;
-            top: 60px;
-            bottom: 90px;
-            left: 0;
-            right: 0;
-            overflow-y: scroll;
-            -webkit-overflow-scrolling: touch;
-            padding: 16px;
-        }
+    position: fixed;
+    top: 60px;
+    bottom: 90px;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    padding-bottom: calc(16px + env(keyboard-inset-height));
+    transform: translateZ(0);
+}
 
         .time-stamp {
             text-align: center;
