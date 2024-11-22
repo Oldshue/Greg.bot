@@ -13,9 +13,9 @@
             background-color: #ffffff;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            height: 100vh;
+            height: 100%;
             position: relative;
-            min-height: -webkit-fill-available;
+            overflow: hidden;
         }
 
         .header {
@@ -43,18 +43,14 @@
         }
 
         .chat-container {
-            padding: 70px 16px 90px 16px;
-            max-width: 800px;
-            margin: 0 auto;
-            overflow-y: auto;
             position: fixed;
-            top: 0;
-            bottom: 0;
+            top: 60px;
+            bottom: 90px;
             left: 0;
             right: 0;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
         }
 
         .time-stamp {
@@ -158,20 +154,15 @@
             right: 0;
             background-color: rgb(249, 249, 249);
             padding: 8px 16px;
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
-            display: flex;
-            align-items: flex-end;
-            min-height: 44px;
-            border-top: 0.5px solid rgba(60, 60, 67, 0.15);
+            padding-bottom: env(safe-area-inset-bottom, 8px);
             z-index: 100;
+            border-top: 0.5px solid rgba(60, 60, 67, 0.15);
         }
 
         .message-input-wrapper {
             position: relative;
-            flex: 1;
             background: white;
             border-radius: 32px;
-            margin-right: 16px;
             padding: 4px;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         }
@@ -221,13 +212,30 @@
             cursor: default;
         }
 
+        /* Mobile-specific adjustments */
         @media screen and (max-width: 768px) {
+            html, body {
+                height: 100%;
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+            }
+            
             .chat-container {
-                padding-bottom: env(safe-area-inset-bottom, 20px);
+                position: fixed;
+                top: 60px;
+                bottom: 60px;
+                left: 0;
+                right: 0;
+                overflow-y: scroll;
+                -webkit-overflow-scrolling: touch;
             }
 
             .input-container {
-                bottom: env(keyboard-inset-height, 0);
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
             }
         }
 </style>
