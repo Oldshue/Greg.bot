@@ -59,9 +59,10 @@ Respond in a natural, conversational way while providing meaningful coaching gui
         settings = self.config["llm_settings"]["anthropic"]
         completion = self.client.completions.create(
             model=settings["model"],
-            max_tokens=settings["max_tokens"],
+            max_tokens_to_sample=settings["max_tokens"],
             temperature=settings["temperature"],
             prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
+            stop_sequences=["\nHuman:", "\n\nHuman:"]
         )
         return completion.completion
 
