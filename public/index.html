@@ -88,6 +88,48 @@
             color: #fff;
         }
 
+        .typing-indicator {
+            float: left;
+            background-color: #e9e9eb;
+            border-radius: 18px;
+            padding: 12px 20px;
+            margin: 0.5rem 0;
+            position: relative;
+            display: none;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            float: left;
+            margin: 0 2px;
+            background-color: #8e8e93;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        .typing-indicator span:nth-of-type(1) {
+            animation: typing 1s infinite;
+        }
+
+        .typing-indicator span:nth-of-type(2) {
+            animation: typing 1s infinite 0.2s;
+        }
+
+        .typing-indicator span:nth-of-type(3) {
+            animation: typing 1s infinite 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
         .input-container {
             position: fixed;
             bottom: 0;
@@ -173,6 +215,11 @@
     <div id="chat" class="chat-container">
         <div class="time-stamp">Today</div>
         <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+        <div id="typing-indicator" class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
     </div>
 
     <div class="input-container">
@@ -189,7 +236,6 @@
 
     <script>
         window.onload = function() {
-            // Ensure initial message is visible
             const chatContainer = document.getElementById('chat');
             chatContainer.scrollTop = chatContainer.scrollHeight;
         };
@@ -204,6 +250,7 @@
             const chatContainer = document.getElementById('chat');
             const input = document.querySelector('.message-input');
             const sendButton = document.querySelector('.send-button');
+            const typingIndicator = document.getElementById('typing-indicator');
 
             function sendMessage() {
                 const message = input.value.trim();
@@ -217,6 +264,10 @@
                 input.style.height = '';
                 sendButton.disabled = true;
 
+                // Show typing indicator
+                typingIndicator.style.display = 'inline-block';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
                 // Send to backend
                 fetch('/api/ask', {
                     method: 'POST',
@@ -227,11 +278,16 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    // Hide typing indicator
+                    typingIndicator.style.display = 'none';
                     if (data.response) {
                         addMessage(data.response, 'bot');
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    typingIndicator.style.display = 'none';
+                });
             }
 
             function addMessage(text, type) {
