@@ -3,24 +3,20 @@ from datetime import datetime
 from anthropic import Anthropic
 import os
 
-
 class LifeCoachSystem:
     def __init__(self):
         self.config = {
             "coaching_style": "supportive",
             "focus_areas": ["career", "health", "relationships"],
-            "response_length": "medium",
-            "follow_up_questions": True,
             "tone": "encouraging",
             "frameworks": {
                 "goal_setting": "SMART",
-                "decision_making": "pros_cons",
-                "accountability": "weekly_check_ins"
+                "decision_making": "pros_cons"
             },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-2.1",  # Changed to claude-2.1
-                    "max_tokens": 1000,
+                    "model": "claude-3-sonnet",
+                    "max_tokens": 500,  # Reduced for more concise responses
                     "temperature": 0.7
                 }
             }
@@ -29,31 +25,21 @@ class LifeCoachSystem:
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        style = self.config["coaching_style"]
-        focus_areas = ", ".join(self.config["focus_areas"])
+        base_prompt = f"""You're texting with a client as their life coach. Keep it casual and warm, like texting a friend. Your style is {self.config['coaching_style']}. Focus on {', '.join(self.config['focus_areas'])}. Break longer messages into shorter chunks. Use emojis sparingly when it feels natural. Previous messages: {self.format_history()} Client says: {user_input}"""
         
-        base_prompt = f"""You are a friendly, conversational life coach texting with a client. Keep your tone casual and warm, as if texting with a friend while maintaining professionalism. Break up your longer messages into shorter chunks like you would in a text conversation. Use natural language and avoid formal academic tone.
-
-Your coaching style is {style} and you focus on {focus_areas}. While you use {self.config['frameworks']['goal_setting']} framework for goal-setting and {self.config['frameworks']['decision_making']} for decisions, weave these in naturally without explicitly mentioning the frameworks.
-
-Keep responses concise and engaging. Use emoji occasionally where appropriate. Ask follow-up questions naturally, as a coach would in conversation.
-
-Previous context: {self.format_history()}
-
-Client's message: {user_input}
-
-Respond in a natural, conversational way while providing meaningful coaching guidance."""
-
         if context:
-            base_prompt += f"\nAdditional context: {context}"
+            base_prompt += f"\nContext: {context}"
+        
         return base_prompt
 
     def format_history(self) -> str:
         if not self.conversation_history:
-            return "No previous conversation"
+            return "No previous messages"
         
-        return "\n".join([f"{entry['timestamp']}: {entry['interaction']}" 
-                         for entry in self.conversation_history[-3:]])
+        return "\n".join([
+            f"{entry['timestamp']}: {entry['interaction']}"
+            for entry in self.conversation_history[-3:]
+        ])
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
@@ -73,6 +59,4 @@ Respond in a natural, conversational way while providing meaningful coaching gui
         })
         
         prompt = self.generate_prompt(user_input, context)
-        response = self.get_llm_response(prompt)
-        
-        return response
+        return self.get_llm_response(prompt)
