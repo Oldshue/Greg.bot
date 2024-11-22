@@ -247,7 +247,7 @@
   <script>
     window.onload = function() {
         const chatContainer = document.getElementById('chat');
-        loadMessages(); // Load saved messages first
+        loadMessages(); 
         chatContainer.scrollTop = chatContainer.scrollHeight;
     };
 
@@ -257,7 +257,6 @@
         document.querySelector('.send-button').disabled = !element.value.trim();
     }
 
-    // New function to save messages
     function saveMessage(text, type) {
         const messages = JSON.parse(localStorage.getItem('chat-messages') || '[]');
         messages.push({
@@ -268,34 +267,33 @@
         localStorage.setItem('chat-messages', JSON.stringify(messages));
     }
 
-    // New function to load messages
     function loadMessages() {
         const messages = JSON.parse(localStorage.getItem('chat-messages') || '[]');
         const chatContainer = document.getElementById('chat');
         
         if (messages.length === 0) {
-            // Save initial greeting if no messages exist
             const greeting = "Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?";
             saveMessage(greeting, 'bot');
             return;
         }
 
-        // Clear existing messages but keep the timestamp
         chatContainer.innerHTML = '<div class="time-stamp">Today</div>';
         
-        // Recreate all messages
+        const typingIndicatorHTML = `
+            <div id="typing-indicator" class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+        chatContainer.insertAdjacentHTML('beforeend', typingIndicatorHTML);
+        
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${msg.type}-message`;
             messageDiv.innerHTML = `<div class="message-content">${msg.text}</div>`;
-            chatContainer.appendChild(messageDiv);
+            chatContainer.insertBefore(messageDiv, document.getElementById('typing-indicator'));
         });
-
-        // Add typing indicator back
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            chatContainer.appendChild(typingIndicator);
-        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -313,7 +311,7 @@
             }
 
             addMessage(message, 'user');
-            saveMessage(message, 'user'); // Save user message
+            saveMessage(message, 'user');
 
             input.value = '';
             input.style.height = '';
@@ -335,7 +333,7 @@
                 typingIndicator.style.display = 'none';
                 if (data.response) {
                     addMessage(data.response, 'bot');
-                    saveMessage(data.response, 'bot'); // Save bot response
+                    saveMessage(data.response, 'bot');
                 }
             })
             .catch(error => {
@@ -343,7 +341,7 @@
                 typingIndicator.style.display = 'none';
                 const errorMsg = 'Sorry, I encountered an error. Please try again.';
                 addMessage(errorMsg, 'bot');
-                saveMessage(errorMsg, 'bot'); // Save error message
+                saveMessage(errorMsg, 'bot');
             });
         }
 
