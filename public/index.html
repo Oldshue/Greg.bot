@@ -422,20 +422,11 @@
 
         // Update viewport and container on keyboard show/hide
         window.visualViewport?.addEventListener('resize', () => {
-            const viewportHeight = window.visualViewport.height;
-            const windowHeight = window.innerHeight;
-            const keyboardHeight = windowHeight - viewportHeight;
-            
-            if (keyboardHeight > 0) {
-                chatContainer.style.height = `${viewportHeight - 60}px`;
-                document.body.style.height = `${viewportHeight}px`;
-                chatContainer.style.paddingBottom = `${keyboardHeight}px`;
-            } else {
-                chatContainer.style.height = 'calc(100vh - 150px)';
-                document.body.style.height = '100%';
-                chatContainer.style.paddingBottom = '90px';
-            }
-            
+    const viewport = window.visualViewport;
+    const keyboard = window.innerHeight - viewport.height;
+    chatContainer.style.transform = `translateY(-${keyboard}px)`;
+    chatContainer.style.height = `${viewport.height}px`;
+});
             requestAnimationFrame(() => {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             });
