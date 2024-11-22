@@ -20,39 +20,20 @@ class LifeCoachSystem:
 
     def generate_prompt(self, user_input: str) -> str:
         return (
-            "You are sending text messages to a client. FOLLOW THESE RULES EXACTLY:\n\n"
-            "1. Each <message> must be a SINGLE complete thought\n"
-            "2. NEVER use commas within messages\n"
-            "3. NEVER connect multiple thoughts\n"
-            "4. Keep each message under 60 characters\n"
-            "5. Write naturally like you're texting\n"
-            "6. Send 1-3 messages as feels natural\n\n"
-            "CORRECT FORMAT:\n"
-            "<message>I hear you're having trouble with job search</message>\n"
-            "<message>What part is most challenging?</message>\n\n"
-            "INCORRECT FORMAT:\n"
-            "❌ <message>I hear you're having trouble, let's break it down</message>\n"
-            "❌ <message>First we'll look at your resume, then interview prep</message>\n\n"
-            f"Previous messages: {self.format_history()}\n"
-            f"Client message: {user_input}\n\n"
-            "Respond naturally with 1-3 messages:"
+            "You are texting with a client. Write naturally as if texting.\n\n"
+            "IMPORTANT RULES:\n"
+            "1. Each complete thought should be its own message\n"
+            "2. Never start a message with a conjunction (and, but, so)\n"
+            "3. Never put a comma right after a period\n"
+            "4. Use commas naturally within a single thought\n\n"
+            "CORRECT examples:\n"
+            "<message>I understand the job search is tough right now</message>\n"
+            "<message>What parts feel most overwhelming?</message>\n\n"
+            "INCORRECT examples:\n"
+            "❌ <message>The job search is tough. And let's work on it</message>\n"
+            "❌ <message>That's difficult., Let's talk about it</message>\n\n"
+            f"Client message: {user_input}"
         )
-
-    def format_history(self) -> str:
-        if not self.conversation_history:
-            return "None"
-        return self.conversation_history[-1]["interaction"]
-
-    def clean_message(self, message: str) -> str:
-        """Strictly clean a single message."""
-        # If message contains a comma, only keep the first part
-        message = message.split(',')[0]
-        # Remove any connecting words that might indicate multiple thoughts
-        connecting_words = [' and ', ' but ', ' or ', ' then ', ' so ']
-        for word in connecting_words:
-            if word in message.lower():
-                message = message.split(word)[0]
-        return message.strip()
 
     def get_llm_response(self, prompt: str) -> List[str]:
         try:
@@ -67,21 +48,21 @@ class LifeCoachSystem:
             messages = []
             import re
             
-            # Extract and strictly clean each message
+            # Extract messages and clean up any period-comma issues
             matches = re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL)
             for match in matches:
-                message = self.clean_message(match.group(1))
-                if message and len(message) <= 60:
+                message = match.group(1).strip()
+                # Fix period-comma issues
+                message = re.sub(r'\.,\s*', '. ', message)
+                # Remove conjunctions at start of messages
+                message = re.sub(r'^(and|but|so)\s+', '', message, flags=re.IGNORECASE)
+                if message:
                     messages.append(message)
             
-            # If we don't have any valid messages, create a single fallback
-            if not messages:
-                return ["How can I help you today?"]
-            
-            return messages
+            return messages or ["How can I help you today?"]
             
         except Exception as e:
-            return ["I'm here to help"]
+            return ["How can I help you today?"]
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
         self.conversation_history.append({
