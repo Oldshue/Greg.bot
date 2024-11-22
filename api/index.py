@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from life_coach import LifeCoachSystem
+from .life_coach import LifeCoachSystem
 
 app = Flask(__name__)
 CORS(app)
