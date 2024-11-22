@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Greg.bot</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
+   <style>
         body {
             margin: 0;
             padding: 0;
@@ -15,6 +15,7 @@
             -moz-osx-font-smoothing: grayscale;
             height: 100vh;
             position: relative;
+            min-height: -webkit-fill-available;
         }
 
         .header {
@@ -46,9 +47,14 @@
             max-width: 800px;
             margin: 0 auto;
             overflow-y: auto;
-            height: calc(100vh - 170px);
-            position: relative;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             z-index: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .time-stamp {
@@ -151,7 +157,8 @@
             left: 0;
             right: 0;
             background-color: rgb(249, 249, 249);
-            padding: 8px 16px max(8px, env(safe-area-inset-bottom)) 16px;
+            padding: 8px 16px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
             display: flex;
             align-items: flex-end;
             min-height: 44px;
@@ -216,15 +223,14 @@
 
         @media screen and (max-width: 768px) {
             .chat-container {
-                height: calc(100vh - 170px - env(keyboard-inset-height, 0px));
-                padding-bottom: 60px;
+                padding-bottom: env(safe-area-inset-bottom, 20px);
             }
-            
-            body {
-                height: -webkit-fill-available;
+
+            .input-container {
+                bottom: env(keyboard-inset-height, 0);
             }
         }
-    </style>
+</style>
 </head>
 <body>
     <header class="header">
