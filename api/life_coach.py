@@ -15,8 +15,8 @@ class LifeCoachSystem:
             },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-3-haiku",  # Changed to most cost-effective model
-                    "max_tokens": 150,  # Reduced for cost efficiency
+                    "model": "claude-2.1",  # Back to stable model
+                    "max_tokens": 150,
                     "temperature": 0.7
                 }
             }
@@ -25,7 +25,6 @@ class LifeCoachSystem:
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        # Keep prompt focused and concise to minimize token usage
         history = self.format_history()
         base_prompt = (
             "You are a supportive life coach having a text conversation. "
@@ -43,24 +42,22 @@ class LifeCoachSystem:
         if not self.conversation_history:
             return "No previous messages"
         
-        # Only keep last 2 messages to reduce token usage
         return "\n".join([
-            f"{entry['interaction']}"  # Removed timestamp to save tokens
+            f"{entry['interaction']}"
             for entry in self.conversation_history[-2:]
         ])
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
         try:
-            completion = self.client.messages.create(  # Updated to use messages API
+            completion = self.client.completions.create(
                 model=settings["model"],
-                max_tokens=settings["max_tokens"],
+                max_tokens_to_sample=settings["max_tokens"],
                 temperature=settings["temperature"],
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
+                stop_sequences=["\nHuman:", "\n\nHuman:"]
             )
-            return completion.content[0].text
+            return completion.completion
         except Exception as e:
             return f"Error generating response: {str(e)}"
 
