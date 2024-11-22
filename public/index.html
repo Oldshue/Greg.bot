@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, height=device-height">
     <title>Greg.bot</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
    <style>
@@ -42,16 +42,17 @@
             font-family: 'Inter', sans-serif;
         }
 
-.chat-container {
+        .chat-container {
     position: fixed;
-    height: calc(100% - 150px);
-    width: 100%;
     top: 60px;
+    bottom: 90px;
+    left: 0;
+    right: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 16px;
-    display: flex;
-    flex-direction: column;
+    padding-bottom: calc(16px + env(keyboard-inset-height));
+    transform: translateZ(0);
 }
 
         .time-stamp {
@@ -420,22 +421,7 @@
             navigator.virtualKeyboard.overlaysContent = true;
         }
 
-        // Update viewport and container on keyboard show/hide
         window.visualViewport?.addEventListener('resize', () => {
-            const viewportHeight = window.visualViewport.height;
-            const windowHeight = window.innerHeight;
-            const keyboardHeight = windowHeight - viewportHeight;
-            
-            if (keyboardHeight > 0) {
-                chatContainer.style.height = `${viewportHeight - 60}px`;
-                document.body.style.height = `${viewportHeight}px`;
-                chatContainer.style.paddingBottom = `${keyboardHeight}px`;
-            } else {
-                chatContainer.style.height = 'calc(100vh - 150px)';
-                document.body.style.height = '100%';
-                chatContainer.style.paddingBottom = '90px';
-            }
-            
             requestAnimationFrame(() => {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             });
