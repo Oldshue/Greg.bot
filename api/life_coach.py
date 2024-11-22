@@ -8,16 +8,12 @@ class LifeCoachSystem:
         self.config = {
             "coaching_style": "supportive",
             "focus_areas": ["career", "health", "relationships"],
-            "tone": "encouraging",
-            "frameworks": {
-                "goal_setting": "SMART",
-                "decision_making": "pros_cons"
-            },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-2.1",  # Back to stable model
+                    "model": "claude-2.1",
                     "max_tokens": 150,
-                    "temperature": 0.7
+                    "temperature": 0.7,
+                    "max_message_length": 150  # Characters per message
                 }
             }
         }
@@ -26,28 +22,44 @@ class LifeCoachSystem:
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         history = self.format_history()
-        base_prompt = (
-            "You are a supportive life coach having a text conversation. "
-            "Keep responses under 100 words, friendly but professional. "
+        return (
+            "You are a supportive life coach texting with a client. Keep each message under 150 characters - "
+            "like a text message. If you need to say more, split it into 2-3 separate short messages. "
+            "Be conversational and friendly. " 
             f"Previous messages: {history}\n"
             f"Client message: {user_input}"
         )
-        
-        if context:
-            base_prompt += f"\nContext: {context}"
-        
-        return base_prompt
 
     def format_history(self) -> str:
         if not self.conversation_history:
             return "No previous messages"
-        
-        return "\n".join([
-            f"{entry['interaction']}"
-            for entry in self.conversation_history[-2:]
-        ])
+        return "\n".join([msg["interaction"] for msg in self.conversation_history[-2:]])
 
-    def get_llm_response(self, prompt: str) -> str:
+    def split_into_messages(self, response: str) -> List[str]:
+        max_length = self.config["llm_settings"]["anthropic"]["max_message_length"]
+        messages = []
+        
+        # Split on sentence boundaries
+        current_msg = ""
+        sentences = response.split('. ')
+        
+        for sentence in sentences:
+            if not sentence:
+                continue
+                
+            if len(current_msg) + len(sentence) <= max_length:
+                current_msg += sentence + '. '
+            else:
+                if current_msg:
+                    messages.append(current_msg.strip())
+                current_msg = sentence + '. '
+                
+        if current_msg:
+            messages.append(current_msg.strip())
+            
+        return messages
+
+    def get_llm_response(self, prompt: str) -> List[str]:
         settings = self.config["llm_settings"]["anthropic"]
         try:
             completion = self.client.completions.create(
@@ -57,11 +69,11 @@ class LifeCoachSystem:
                 prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
                 stop_sequences=["\nHuman:", "\n\nHuman:"]
             )
-            return completion.completion
+            return self.split_into_messages(completion.completion)
         except Exception as e:
-            return f"Error generating response: {str(e)}"
+            return [f"Error generating response: {str(e)}"]
 
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
+    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
         self.conversation_history.append({
             "timestamp": datetime.now().isoformat(),
             "interaction": user_input
