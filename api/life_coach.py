@@ -1,19 +1,13 @@
-import json
 from typing import Dict, List, Optional
-import os
 from datetime import datetime
 from anthropic import Anthropic
-from dotenv import load_dotenv
-
-load_dotenv()  # Load environment variables
+import os
 
 class LifeCoachSystem:
-    def __init__(self, config_path: str = "coach_config.json", llm_provider: str = "anthropic"):
-        self.config_path = config_path
-        self.llm_provider = llm_provider
-        self.load_config()
+    def __init__(self):
         self.conversation_history = []
-        self.client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+        self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+        # Rest of the init remains the same
 
     def load_config(self):
         if os.path.exists(self.config_path):
