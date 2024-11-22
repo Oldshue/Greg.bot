@@ -44,14 +44,13 @@
 
 .chat-container {
     position: fixed;
-    height: calc(100% - 150px);
-    width: 100%;
     top: 60px;
+    bottom: 90px;
+    width: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 16px;
-    display: flex;
-    flex-direction: column;
+    box-sizing: border-box;
 }
 
         .time-stamp {
@@ -421,15 +420,20 @@
         }
 
        window.visualViewport?.addEventListener('resize', () => {
-           const viewport = window.visualViewport;
-           const keyboard = window.innerHeight - viewport.height;
-           chatContainer.style.transform = `translateY(-${keyboard}px)`;
-           chatContainer.style.height = `${viewport.height}px`;
-           requestAnimationFrame(() => {
-               chatContainer.scrollTop = chatContainer.scrollHeight;
-           });
-       });
-   });
+    const viewport = window.visualViewport;
+    const keyboard = window.innerHeight - viewport.height;
+    
+    if (keyboard > 0) {
+        chatContainer.style.bottom = keyboard + 'px';
+    } else {
+        chatContainer.style.bottom = '90px';
+    }
+    
+    requestAnimationFrame(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+});
+});
 </script>
 </body>
 </html>
