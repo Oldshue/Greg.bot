@@ -42,17 +42,16 @@
             font-family: 'Inter', sans-serif;
         }
 
-        .chat-container {
+.chat-container {
     position: fixed;
+    height: calc(100% - 150px);
+    width: 100%;
     top: 60px;
-    bottom: 90px;
-    left: 0;
-    right: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 16px;
-    padding-bottom: calc(16px + env(keyboard-inset-height));
-    transform: translateZ(0);
+    display: flex;
+    flex-direction: column;
 }
 
         .time-stamp {
