@@ -11,7 +11,7 @@ class LifeCoachSystem:
                     "model": "claude-2.1",
                     "max_tokens": 150,
                     "temperature": 0.7,
-                    "max_message_length": 60  # Even shorter for more natural breaks
+                    "max_message_length": 60
                 }
             }
         }
@@ -20,31 +20,39 @@ class LifeCoachSystem:
 
     def generate_prompt(self, user_input: str) -> str:
         return (
-            "You are texting with a client. CRITICAL INSTRUCTIONS:\n"
-            "1. Send 2-3 separate, complete text messages\n"
-            "2. Each message must be a single complete thought\n"
-            "3. NEVER use commas to separate messages\n"
-            "4. NEVER combine multiple thoughts with commas\n"
-            "5. Keep each message under 60 characters\n"
-            "6. Be natural and conversational\n\n"
-            "Example of GOOD messages:\n"
-            "<message>Hi! I'd love to help you today 👋</message>\n"
-            "<message>Let's focus on your goals first</message>\n"
-            "<message>What would you like to work on?</message>\n\n"
-            "Example of BAD messages:\n"
-            "❌ <message>Hi there, let's discuss goals, what interests you?</message>\n\n"
-            f"Client message: {user_input}"
+            "You are sending text messages to a client. FOLLOW THESE RULES EXACTLY:\n\n"
+            "1. Each <message> must be a SINGLE complete thought\n"
+            "2. NEVER use commas within messages\n"
+            "3. NEVER connect multiple thoughts\n"
+            "4. Keep each message under 60 characters\n"
+            "5. Write naturally like you're texting\n"
+            "6. Send 1-3 messages as feels natural\n\n"
+            "CORRECT FORMAT:\n"
+            "<message>I hear you're having trouble with job search</message>\n"
+            "<message>What part is most challenging?</message>\n\n"
+            "INCORRECT FORMAT:\n"
+            "❌ <message>I hear you're having trouble, let's break it down</message>\n"
+            "❌ <message>First we'll look at your resume, then interview prep</message>\n\n"
+            f"Previous messages: {self.format_history()}\n"
+            f"Client message: {user_input}\n\n"
+            "Respond naturally with 1-3 messages:"
         )
 
     def format_history(self) -> str:
         if not self.conversation_history:
-            return "No previous messages"
-        
-        # Only keep last 2 messages to reduce token usage
-        return "\n".join([
-            f"{entry['interaction']}" 
-            for entry in self.conversation_history[-2:]
-        ])
+            return "None"
+        return self.conversation_history[-1]["interaction"]
+
+    def clean_message(self, message: str) -> str:
+        """Strictly clean a single message."""
+        # If message contains a comma, only keep the first part
+        message = message.split(',')[0]
+        # Remove any connecting words that might indicate multiple thoughts
+        connecting_words = [' and ', ' but ', ' or ', ' then ', ' so ']
+        for word in connecting_words:
+            if word in message.lower():
+                message = message.split(word)[0]
+        return message.strip()
 
     def get_llm_response(self, prompt: str) -> List[str]:
         try:
@@ -59,25 +67,21 @@ class LifeCoachSystem:
             messages = []
             import re
             
-            # Extract messages and clean them
-            for match in re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL):
-                message = match.group(1).strip()
-                # Remove any remaining comma-separated phrases
-                if ',' in message:
-                    message = message.split(',')[0].strip()
+            # Extract and strictly clean each message
+            matches = re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL)
+            for match in matches:
+                message = self.clean_message(match.group(1))
                 if message and len(message) <= 60:
                     messages.append(message)
             
+            # If we don't have any valid messages, create a single fallback
             if not messages:
-                # Fallback to simple sentence splitting
-                text = completion.completion.replace(',', '.').replace('!', '.|').replace('?', '?|')
-                messages = [s.strip() for s in text.split('|') if s.strip()][:3]
-                messages = [m for m in messages if len(m) <= 60]
+                return ["How can I help you today?"]
             
-            return messages or ["Hi! How can I help you today? 👋"]
+            return messages
             
         except Exception as e:
-            return ["Hi! Let's work together on your goals"]
+            return ["I'm here to help"]
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
         self.conversation_history.append({
@@ -87,24 +91,3 @@ class LifeCoachSystem:
         
         prompt = self.generate_prompt(user_input)
         return self.get_llm_response(prompt)
-
-    def split_into_messages(self, text: str) -> List[str]:
-        """Helper method to split text into messages if needed."""
-        messages = []
-        current = ""
-        
-        for sentence in text.split('. '):
-            if not sentence.strip():
-                continue
-                
-            if len(current) + len(sentence) <= self.config["llm_settings"]["anthropic"]["max_message_length"]:
-                current += sentence + '. '
-            else:
-                if current:
-                    messages.append(current.strip())
-                current = sentence + '. '
-        
-        if current:
-            messages.append(current.strip())
-            
-        return messages or ["Let's focus on your goals"]
