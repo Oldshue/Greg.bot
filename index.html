@@ -4,16 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Greg.bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @font-face {
-            font-family: "SF Pro Text";
-            src: local("-apple-system");
-        }
-
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #ffffff;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -27,7 +23,7 @@
             width: 100%;
             z-index: 100;
             height: 52px;
-            border-bottom: 1px solid rgb(229, 229, 229);
+            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -36,9 +32,10 @@
         .header h1 {
             margin: 0;
             font-size: 16px;
-            color: rgb(38, 38, 38);
+            color: #000000;
             font-weight: 600;
             letter-spacing: -0.01em;
+            font-family: 'Inter', sans-serif;
         }
 
         .chat-container {
@@ -51,17 +48,21 @@
 
         .time-stamp {
             text-align: center;
-            color: #8e8e93;
+            color: rgba(0, 0, 0, 0.4);
             font-size: 12px;
             margin: 1rem 0;
-            font-weight: 500;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
         }
 
         .message {
             margin: 0.5rem 0;
             max-width: 80%;
             clear: both;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            line-height: 1.4;
+            font-weight: 500;
         }
 
         .bot-message {
@@ -92,7 +93,7 @@
             display: flex;
             align-items: flex-end;
             min-height: 44px;
-            border-top: 1px solid rgb(229, 229, 229);
+            border-top: 0.5px solid rgba(0, 0, 0, 0.1);
         }
 
         .message-input-wrapper {
@@ -117,15 +118,16 @@
             outline: none;
             margin: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
-            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
             letter-spacing: -0.01em;
             color: #000000;
         }
 
         .message-input::placeholder {
-            color: #8e8e93;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
+            color: rgba(0, 0, 0, 0.3);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
         }
 
         .send-button {
@@ -136,15 +138,15 @@
             border: none;
             background: none;
             color: #007aff;
-            font-size: 17px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             padding: 4px 8px;
             cursor: pointer;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         .send-button:disabled {
-            color: #007aff80;
+            color: rgba(0, 122, 255, 0.5);
             cursor: default;
         }
 
