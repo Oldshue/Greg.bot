@@ -420,12 +420,14 @@
             navigator.virtualKeyboard.overlaysContent = true;
         }
 
-        // Update viewport and container on keyboard show/hide
-        window.visualViewport?.addEventListener('resize', () => {
+       window.visualViewport?.addEventListener('resize', () => {
     const viewport = window.visualViewport;
     const keyboard = window.innerHeight - viewport.height;
     chatContainer.style.transform = `translateY(-${keyboard}px)`;
     chatContainer.style.height = `${viewport.height}px`;
+    requestAnimationFrame(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
 });
             requestAnimationFrame(() => {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
