@@ -45,25 +45,23 @@
 @media screen and (max-width: 768px) {
     html, body {
         height: 100%;
-        overflow: hidden;
         position: fixed;
         width: 100%;
     }
     
     .chat-container {
-    position: fixed;
-    height: calc(100% - 150px);
-    width: 100%;
-    top: 60px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-}
+        position: fixed;
+        top: 60px;
+        height: calc(100% - 150px);
+        width: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 16px;
+        box-sizing: border-box;
+    }
 
     .input-container {
-        position: absolute;
+        position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
@@ -437,17 +435,26 @@
         }
 
     window.visualViewport?.addEventListener('resize', () => {
-    const viewport = window.visualViewport;
-    const container = document.querySelector('.chat-container');
-    const input = document.querySelector('.input-container');
-    
-    if (viewport.height < window.innerHeight) {
-        container.style.height = `${viewport.height - 110}px`;
-        input.style.bottom = `${window.innerHeight - viewport.height}px`;
-    } else {
-        container.style.height = 'calc(100% - 150px)';
-        input.style.bottom = '0';
+    if (window.innerWidth <= 768) { // Only for mobile
+        const viewport = window.visualViewport;
+        const keyboardHeight = window.innerHeight - viewport.height;
+        const chatContainer = document.querySelector('.chat-container');
+        const inputContainer = document.querySelector('.input-container');
+        
+        if (keyboardHeight > 0) {
+            chatContainer.style.height = `${viewport.height - 110}px`;
+            chatContainer.style.position = 'fixed';
+            chatContainer.style.top = '60px';
+            inputContainer.style.transform = `translateY(-${keyboardHeight}px)`;
+        } else {
+            chatContainer.style.height = 'calc(100% - 150px)';
+            chatContainer.style.position = 'fixed';
+            inputContainer.style.transform = 'none';
+        }
+        
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
+});
     
     requestAnimationFrame(() => {
         chatContainer.scrollTop = chatContainer.scrollHeight;
