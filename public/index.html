@@ -42,15 +42,29 @@
             font-family: 'Inter', sans-serif;
         }
 
-.chat-container {
-    position: fixed;
-    top: 60px;
-    bottom: 90px;
-    width: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px;
-    box-sizing: border-box;
+@media screen and (max-width: 768px) {
+    html, body {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+    
+    .chat-container {
+        position: absolute;
+        top: 60px;
+        height: calc(100vh - 60px - 90px);
+        width: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .input-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
 }
 
         .time-stamp {
@@ -419,15 +433,13 @@
             navigator.virtualKeyboard.overlaysContent = true;
         }
 
-       window.visualViewport?.addEventListener('resize', () => {
+     window.visualViewport?.addEventListener('resize', () => {
     const viewport = window.visualViewport;
-    const keyboard = window.innerHeight - viewport.height;
-    
-    if (keyboard > 0) {
-        chatContainer.style.bottom = keyboard + 'px';
-    } else {
-        chatContainer.style.bottom = '90px';
-    }
+    const keyboardHeight = window.innerHeight - viewport.height;
+    document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+    document.documentElement.style.height = `${viewport.height}px`;
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+});
     
     requestAnimationFrame(() => {
         chatContainer.scrollTop = chatContainer.scrollHeight;
