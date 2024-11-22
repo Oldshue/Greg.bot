@@ -3,10 +3,9 @@ from datetime import datetime
 from anthropic import Anthropic
 import os
 
+
 class LifeCoachSystem:
     def __init__(self):
-        self.conversation_history = []
-        self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
         self.config = {
             "coaching_style": "supportive",
             "focus_areas": ["career", "health", "relationships"],
@@ -26,6 +25,8 @@ class LifeCoachSystem:
                 }
             }
         }
+        self.conversation_history = []
+        self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         style = self.config["coaching_style"]
@@ -45,7 +46,6 @@ Respond in a natural, conversational way while providing meaningful coaching gui
 
         if context:
             base_prompt += f"\nAdditional context: {context}"
-
         return base_prompt
 
     def format_history(self) -> str:
