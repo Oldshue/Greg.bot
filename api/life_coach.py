@@ -57,13 +57,13 @@ Respond in a natural, conversational way while providing meaningful coaching gui
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        message = self.client.messages.create(
+        completion = self.client.completions.create(
             model=settings["model"],
             max_tokens=settings["max_tokens"],
             temperature=settings["temperature"],
-            content=prompt
+            prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
         )
-        return message.content
+        return completion.completion
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
