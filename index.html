@@ -202,13 +202,22 @@
                 } else {
                     addMessage(data.response, false);
                 }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                thinking.remove();
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message';
-                errorDiv.textContent = 'Connection error. Please check your internet and try again.';
-                chat.appendChild(errorDiv);
+            }
+} catch (error) {
+    console.error('Detailed fetch error:', error);
+    thinking.remove();
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    const errorText = error.message;
+    try {
+        const errorResponse = await error.response?.json();
+        if (errorResponse?.error) {
+            errorText += '\n' + errorResponse.error;
+        }
+    } catch {}
+    errorDiv.textContent = errorText;
+    chat.appendChild(errorDiv);
+}
             }
             
             isThinking = false;
