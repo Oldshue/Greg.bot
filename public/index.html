@@ -239,37 +239,6 @@
                 right: 0;
             }
         }
-</style>
-</head>
-<body>
-    <header class="header">
-        <h1>Greg.bot</h1>
-    </header>
-
-    <div id="chat" class="chat-container">
-        <div class="time-stamp">Today</div>
-        <div class="message bot-message">
-            <div class="message-content">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
-        </div>
-        <div id="typing-indicator" class="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </div>
-
-    <div class="input-container">
-        <div class="message-input-wrapper">
-            <textarea 
-                class="message-input" 
-                placeholder="Message"
-                rows="1"
-                oninput="auto_grow(this)"
-            ></textarea>
-            <button class="send-button" disabled>Send</button>
-        </div>
-    </div>
-
 <script>
     window.onload = function() {
         const chatContainer = document.getElementById('chat');
@@ -297,7 +266,6 @@
         const messages = JSON.parse(localStorage.getItem('chat-messages') || '[]');
         const chatContainer = document.getElementById('chat');
         
-        // Temporarily hide container while loading to prevent visual delay
         chatContainer.style.opacity = '0';
         
         if (messages.length === 0) {
@@ -307,7 +275,6 @@
             return;
         }
 
-        // Pre-build all message HTML before inserting
         let messagesHTML = '<div class="time-stamp">Today</div>';
         messages.forEach(msg => {
             messagesHTML += `
@@ -327,7 +294,6 @@
         
         chatContainer.innerHTML = messagesHTML;
         
-        // Force layout recalculation for mobile
         requestAnimationFrame(() => {
             chatContainer.style.opacity = '1';
             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -340,11 +306,25 @@
         const sendButton = document.querySelector('.send-button');
         const typingIndicator = document.getElementById('typing-indicator');
 
-        // Ensure chat container is visible on mobile
-        const resizeObserver = new ResizeObserver(() => {
+        // Handle viewport resize for mobile keyboard
+        function updateViewport() {
+            const viewportHeight = window.visualViewport.height;
+            const windowHeight = window.innerHeight;
+            const keyboardHeight = windowHeight - viewportHeight;
+            chatContainer.style.height = `${viewportHeight - 60}px`;
+            
+            if (keyboardHeight > 0) {
+                document.body.style.height = `${viewportHeight}px`;
+                chatContainer.style.paddingBottom = `${keyboardHeight}px`;
+            } else {
+                document.body.style.height = '100%';
+                chatContainer.style.paddingBottom = '90px';
+            }
             chatContainer.scrollTop = chatContainer.scrollHeight;
-        });
-        resizeObserver.observe(chatContainer);
+        }
+
+        window.visualViewport.addEventListener('resize', updateViewport);
+        window.visualViewport.addEventListener('scroll', updateViewport);
 
         function sendMessage() {
             const message = input.value.trim();
@@ -415,16 +395,8 @@
             }
         });
         
-        // Handle mobile keyboard appearance
-        if ('virtualKeyboard' in navigator) {
-            navigator.virtualKeyboard.overlaysContent = true;
-        }
-
-        window.visualViewport?.addEventListener('resize', () => {
-            requestAnimationFrame(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            });
-        });
+        // Initial viewport setup
+        updateViewport();
     });
 </script>
 </body>
