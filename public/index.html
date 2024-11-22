@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Greg.bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #f2f2f2;
+            padding: 10px 15px;
+            text-align: center;
+            border-bottom: 1px solid #d1d1d1;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 {
+            font-size: 16px;
+            color: #000;
+            font-weight: 500;
+        }
+        .chat-container {
+            flex-grow: 1;
+            padding: 50px 15px 80px;
+            overflow-y: auto;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            background: #ffffff;
+        }
+        .message {
+            margin: 8px 0;
+            max-width: 75%;
+            padding: 8px 15px;
+            border-radius: 20px;
+            line-height: 1.4;
+            font-size: 16px;
+            position: relative;
+        }
+        .user-message {
+            background: #0984ff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .coach-message {
+            background: #e9e9eb;
+            color: black;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        .input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #f2f2f2;
+            padding: 10px 15px;
+            border-top: 1px solid #d1d1d1;
+            display: flex;
+            gap: 8px;
+        }
+        .input-container input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #d1d1d1;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            background: #fff;
+        }
+        .input-container button {
+            background: transparent;
+            color: #0984ff;
+            border: none;
+            padding: 8px 15px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .input-container button:disabled {
+            color: #999;
+        }
+        .thinking {
+            display: flex;
+            gap: 3px;
+            padding: 8px 15px;
+            background: #e9e9eb;
+            border-radius: 20px;
+            width: fit-content;
+            margin: 8px 0;
+            border-bottom-left-radius: 4px;
+        }
+        .thinking span {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: thinking 1.4s infinite;
+        }
+        .thinking span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes thinking {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .time-stamp {
+            text-align: center;
+            color: #8e8e93;
+            font-size: 12px;
+            margin: 20px 0;
+        }
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Greg.bot</h1>
+    </div>
+    <div class="chat-container" id="chat">
+        <div class="time-stamp">Today</div>
+    </div>
+    <div class="input-container">
+        <input type="text" id="question" placeholder="Message Greg..." onkeypress="handleKeyPress(event)">
+        <button onclick="askQuestion()">Send</button>
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('question');
+        let isThinking = false;
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !isThinking) {
+                askQuestion();
+            }
+        }
+
+        function scrollToBottom() {
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function addMessage(content, isUser) {
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user-message' : 'coach-message'}`;
+            div.textContent = content;
+            chat.appendChild(div);
+            scrollToBottom();
+        }
+
+        function showThinking() {
+            const thinking = document.createElement('div');
+            thinking.className = 'thinking';
+            thinking.innerHTML = '<span></span><span></span><span></span>';
+            chat.appendChild(thinking);
+            scrollToBottom();
+            return thinking;
+        }
+
+        async function askQuestion() {
+            if (isThinking) return;
+            
+            const question = input.value.trim();
+            if (!question) return;
+            
+            isThinking = true;
+            input.value = '';
+            addMessage(question, true);
+            const thinking = showThinking();
+            
+            try {
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({question})
+                });
+                
+                const data = await response.json();
+                thinking.remove();
+                
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = 'Sorry, there was an error: ' + data.error;
+                    chat.appendChild(errorDiv);
+                } else {
+                    addMessage(data.response, false);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                thinking.remove();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Connection error. Please check your internet and try again.';
+                chat.appendChild(errorDiv);
+            }
+            
+            isThinking = false;
+            scrollToBottom();
+        }
+
+        window.onload = () => {
+            addMessage("Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?", false);
+        };
+    </script>
+</body>
+</html>
