@@ -8,9 +8,9 @@ class LifeCoachSystem:
         self.config = {
             "coaching_style": "supportive",
             "focus_areas": ["career", "health", "relationships"],
-            "response_length": "short",  # Changed from medium to short
+            "response_length": "short",
             "follow_up_questions": True,
-            "tone": "casual",  # Changed from encouraging to casual
+            "tone": "casual",
             "frameworks": {
                 "goal_setting": "SMART",
                 "decision_making": "pros_cons",
@@ -19,8 +19,8 @@ class LifeCoachSystem:
             "llm_settings": {
                 "anthropic": {
                     "model": "claude-2.1",
-                    "max_tokens": 400,  # Reduced from 1000 to encourage conciseness
-                    "temperature": 0.8  # Slightly increased to encourage more natural responses
+                    "max_tokens": 200,  # Reduced from 400 to 200
+                    "temperature": 0.8
                 }
             }
         }
@@ -28,10 +28,9 @@ class LifeCoachSystem:
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        # Simplified prompt that emphasizes brevity and natural conversation
         base_prompt = f"""You're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
-Keep responses under 3 short paragraphs. Use natural language and occasional emoji.
-If you ask a follow-up question, limit it to one clear question.
+Keep responses to 2-3 sentences max. Use natural language and occasional emoji.
+If you ask a follow-up question, keep it brief.
 
 Previous messages:
 {self.format_history()}
@@ -46,7 +45,6 @@ Client's message: {user_input}"""
     def format_history(self) -> str:
         if not self.conversation_history:
             return "No previous conversation"
-        # Only show last 2 messages for more focused context
         return "\n".join([f"{entry['interaction']}" for entry in self.conversation_history[-2:]])
 
     def get_llm_response(self, prompt: str) -> str:
