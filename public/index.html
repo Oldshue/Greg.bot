@@ -69,6 +69,7 @@
             line-height: 1.4;
             font-weight: 500;
             display: flex;
+            width: 100%;
         }
 
         .message-content {
@@ -84,7 +85,6 @@
         .bot-message .message-content {
             background-color: #e9e9eb;
             color: #000;
-            border-top-left-radius: 4px;
             margin-right: auto;
         }
 
@@ -95,19 +95,19 @@
         .user-message .message-content {
             background-color: #007aff;
             color: #fff;
-            border-top-right-radius: 4px;
             margin-left: auto;
         }
 
         .typing-indicator {
-            position: relative;
+            width: fit-content;
             background-color: #e9e9eb;
             border-radius: 20px;
-            border-top-left-radius: 4px;
-            padding: 12px 20px;
+            padding: 16px 24px;
             margin: 0.5rem 0;
             display: none;
-            width: fit-content;
+            position: relative;
+            max-width: 70px;
+            min-width: 50px;
         }
 
         .typing-indicator span {
@@ -275,7 +275,7 @@
                 sendButton.disabled = true;
 
                 // Show typing indicator
-                typingIndicator.style.display = 'inline-block';
+                typingIndicator.style.display = 'block';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 // Send to backend
