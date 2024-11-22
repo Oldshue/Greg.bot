@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 from datetime import datetime
-from anthropic import Anthropic, CLAUDE_3_OPUS_20240229
+from anthropic import Anthropic
 import os
 
 
@@ -26,7 +26,7 @@ class LifeCoachSystem:
             }
         }
         self.conversation_history = []
-        self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+        self.client = Anthropic()
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         style = self.config["coaching_style"]
@@ -57,13 +57,13 @@ Respond in a natural, conversational way while providing meaningful coaching gui
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        completion = self.client.complete(
-            model=CLAUDE_3_OPUS_20240229,
+        message = self.client.beta.messages.create(
+            model=settings["model"],
             max_tokens=settings["max_tokens"],
             temperature=settings["temperature"],
-            prompt=prompt
+            messages=[{"role": "user", "content": prompt}]
         )
-        return completion.completion
+        return message.content[0].text
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
