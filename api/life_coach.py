@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 from datetime import datetime
-from anthropic import Anthropic
+from anthropic import Anthropic, CLAUDE_3_OPUS_20240229
 import os
 
 
@@ -57,13 +57,13 @@ Respond in a natural, conversational way while providing meaningful coaching gui
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        message = self.client.messages.create(
-            model=settings["model"],
+        completion = self.client.complete(
+            model=CLAUDE_3_OPUS_20240229,
             max_tokens=settings["max_tokens"],
             temperature=settings["temperature"],
-            messages=[{"role": "user", "content": prompt}]
+            prompt=prompt
         )
-        return message.content[0].text if isinstance(message.content, list) else message.content
+        return completion.completion
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
