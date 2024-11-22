@@ -61,44 +61,53 @@
         }
 
         .message {
+            position: relative;
             margin: 0.5rem 0;
-            max-width: 70%;
             clear: both;
             font-family: 'Inter', sans-serif;
             font-size: 16px;
             line-height: 1.4;
             font-weight: 500;
+            display: flex;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 0.8rem 1rem;
+            border-radius: 20px;
         }
 
         .bot-message {
-            float: left;
+            justify-content: flex-start;
+        }
+
+        .bot-message .message-content {
             background-color: #e9e9eb;
-            border-radius: 20px;
-            padding: 0.8rem 1rem;
-            margin-right: 2rem;
             color: #000;
             border-top-left-radius: 4px;
+            margin-right: auto;
         }
 
         .user-message {
-            float: right;
+            justify-content: flex-end;
+        }
+
+        .user-message .message-content {
             background-color: #007aff;
-            border-radius: 20px;
-            padding: 0.8rem 1rem;
-            margin-left: 2rem;
             color: #fff;
             border-top-right-radius: 4px;
+            margin-left: auto;
         }
 
         .typing-indicator {
-            float: left;
+            position: relative;
             background-color: #e9e9eb;
             border-radius: 20px;
+            border-top-left-radius: 4px;
             padding: 12px 20px;
             margin: 0.5rem 0;
-            position: relative;
             display: none;
-            border-top-left-radius: 4px;
+            width: fit-content;
         }
 
         .typing-indicator span {
@@ -125,11 +134,14 @@
         }
 
         @keyframes typing {
-            0%, 100% {
+            0% {
                 transform: translateY(0px);
             }
             50% {
                 transform: translateY(-5px);
+            }
+            100% {
+                transform: translateY(0px);
             }
         }
 
@@ -201,13 +213,6 @@
             color: rgba(0, 122, 255, 0.5);
             cursor: default;
         }
-
-        /* Clear fix for floating messages */
-        .clearfix::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
     </style>
 </head>
 <body>
@@ -217,7 +222,9 @@
 
     <div id="chat" class="chat-container">
         <div class="time-stamp">Today</div>
-        <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+        <div class="message bot-message">
+            <div class="message-content">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+        </div>
         <div id="typing-indicator" class="typing-indicator">
             <span></span>
             <span></span>
@@ -295,8 +302,8 @@
 
             function addMessage(text, type) {
                 const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${type}-message clearfix`;
-                messageDiv.textContent = text;
+                messageDiv.className = `message ${type}-message`;
+                messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
