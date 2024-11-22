@@ -20,35 +20,14 @@ class LifeCoachSystem:
 
     def generate_prompt(self, user_input: str) -> str:
         return (
-            "You are texting with a client. Follow these rules exactly:\n\n"
-            "1. If you have multiple thoughts, use separate <message> tags\n"
-            "2. Never put a period followed by a comma\n"
-            "3. Never replace a period with a comma\n"
-            "4. Keep each message under 60 characters\n"
-            "5. Write naturally as if texting\n\n"
-            "CORRECT:\n"
-            "<message>I understand you're frustrated with the job search</message>\n"
-            "<message>What parts are most challenging for you?</message>\n\n"
-            "INCORRECT:\n"
-            "❌ <message>I understand your frustration., What's challenging?</message>\n"
-            "❌ <message>I hear you, tell me more about it</message>\n\n"
-            f"Previous messages: {self.format_history()}\n"
+            "You are texting with a client. Write naturally with normal sentence structure:\n\n"
+            "- Use periods to separate complete thoughts\n"
+            "- Use emojis on occasion when appropriate\n"
+            "- Use commas normally within sentences\n"
+            "- Never use commas to replace periods\n"
+            "- Keep messages concise\n\n"
             f"Client message: {user_input}"
         )
-
-    def format_history(self) -> str:
-        if not self.conversation_history:
-            return "None"
-        return self.conversation_history[-1]["interaction"]
-
-    def clean_message(self, message: str) -> str:
-        """Clean a single message."""
-        # Remove any period-comma combinations
-        message = message.replace(".,", "")
-        # Remove any standalone commas that appear after sentence endings
-        import re
-        message = re.sub(r'\.\s*,\s*', '. ', message)
-        return message.strip()
 
     def get_llm_response(self, prompt: str) -> List[str]:
         try:
@@ -63,11 +42,10 @@ class LifeCoachSystem:
             messages = []
             import re
             
-            # Extract and clean messages
             matches = re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL)
             for match in matches:
-                message = self.clean_message(match.group(1))
-                if message and len(message) <= self.config["llm_settings"]["anthropic"]["max_message_length"]:
+                message = match.group(1).strip()
+                if message:
                     messages.append(message)
             
             return messages or ["How can I help you today?"]
@@ -75,11 +53,5 @@ class LifeCoachSystem:
         except Exception as e:
             return ["How can I help you today?"]
 
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
-        self.conversation_history.append({
-            "timestamp": datetime.now().isoformat(),
-            "interaction": user_input
-        })
-        
-        prompt = self.generate_prompt(user_input)
-        return self.get_llm_response(prompt)
+    def process_user_input(self, user_input: str) -> List[str]:
+        return self.get_llm_response(self.generate_prompt(user_input))
