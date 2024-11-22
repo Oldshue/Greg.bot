@@ -7,43 +7,25 @@ class LifeCoachSystem:
     def __init__(self):
         self.conversation_history = []
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
-        # Rest of the init remains the same
-
-    def load_config(self):
-        if os.path.exists(self.config_path):
-            with open(self.config_path, 'r') as f:
-                self.config = json.load(f)
-        else:
-            self.config = {
-                "coaching_style": "supportive",
-                "focus_areas": ["career", "health", "relationships"],
-                "response_length": "medium",
-                "follow_up_questions": True,
-                "tone": "encouraging",
-                "frameworks": {
-                    "goal_setting": "SMART",
-                    "decision_making": "pros_cons",
-                    "accountability": "weekly_check_ins"
-                },
-                "custom_prompts": {},
-                "llm_settings": {
-                    "anthropic": {
-                        "model": "claude-3-opus-20240229",
-                        "max_tokens": 1000,
-                        "temperature": 0.7
-                    },
-                    "openai": {
-                        "model": "gpt-4",
-                        "max_tokens": 1000,
-                        "temperature": 0.7
-                    }
+        self.config = {
+            "coaching_style": "supportive",
+            "focus_areas": ["career", "health", "relationships"],
+            "response_length": "medium",
+            "follow_up_questions": True,
+            "tone": "encouraging",
+            "frameworks": {
+                "goal_setting": "SMART",
+                "decision_making": "pros_cons",
+                "accountability": "weekly_check_ins"
+            },
+            "llm_settings": {
+                "anthropic": {
+                    "model": "claude-3-opus-20240229",
+                    "max_tokens": 1000,
+                    "temperature": 0.7
                 }
             }
-            self.save_config()
-
-    def save_config(self):
-        with open(self.config_path, 'w') as f:
-            json.dump(self.config, f, indent=4)
+        }
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         style = self.config["coaching_style"]
@@ -62,7 +44,7 @@ Client's message: {user_input}
 Respond in a natural, conversational way while providing meaningful coaching guidance."""
 
         if context:
-            base_prompt += f"\nAdditional context: {json.dumps(context)}"
+            base_prompt += f"\nAdditional context: {context}"
 
         return base_prompt
 
@@ -93,26 +75,3 @@ Respond in a natural, conversational way while providing meaningful coaching gui
         response = self.get_llm_response(prompt)
         
         return response
-
-    def add_custom_prompt(self, name: str, prompt_template: str):
-        self.config["custom_prompts"][name] = prompt_template
-        self.save_config()
-
-    def update_coaching_style(self, style: str):
-        self.config["coaching_style"] = style
-        self.save_config()
-
-    def update_focus_areas(self, areas: List[str]):
-        self.config["focus_areas"] = areas
-        self.save_config()
-
-    def update_llm_settings(self, provider: str, settings: Dict):
-        self.config["llm_settings"][provider].update(settings)
-        self.save_config()
-
-    def get_coaching_stats(self) -> Dict:
-        return {
-            "total_interactions": len(self.conversation_history),
-            "focus_areas": self.config["focus_areas"],
-            "current_style": self.config["coaching_style"]
-        }
