@@ -15,8 +15,8 @@ class LifeCoachSystem:
             },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-3-sonnet",
-                    "max_tokens": 500,  # Reduced for more concise responses
+                    "model": "claude-3-haiku",  # Changed to most cost-effective model
+                    "max_tokens": 150,  # Reduced for cost efficiency
                     "temperature": 0.7
                 }
             }
@@ -25,7 +25,14 @@ class LifeCoachSystem:
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        base_prompt = f"""You're texting with a client as their life coach. Keep it casual and warm, like texting a friend. Your style is {self.config['coaching_style']}. Focus on {', '.join(self.config['focus_areas'])}. Break longer messages into shorter chunks. Use emojis sparingly when it feels natural. Previous messages: {self.format_history()} Client says: {user_input}"""
+        # Keep prompt focused and concise to minimize token usage
+        history = self.format_history()
+        base_prompt = (
+            "You are a supportive life coach having a text conversation. "
+            "Keep responses under 100 words, friendly but professional. "
+            f"Previous messages: {history}\n"
+            f"Client message: {user_input}"
+        )
         
         if context:
             base_prompt += f"\nContext: {context}"
@@ -36,21 +43,26 @@ class LifeCoachSystem:
         if not self.conversation_history:
             return "No previous messages"
         
+        # Only keep last 2 messages to reduce token usage
         return "\n".join([
-            f"{entry['timestamp']}: {entry['interaction']}"
-            for entry in self.conversation_history[-3:]
+            f"{entry['interaction']}"  # Removed timestamp to save tokens
+            for entry in self.conversation_history[-2:]
         ])
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        completion = self.client.completions.create(
-            model=settings["model"],
-            max_tokens_to_sample=settings["max_tokens"],
-            temperature=settings["temperature"],
-            prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
-            stop_sequences=["\nHuman:", "\n\nHuman:"]
-        )
-        return completion.completion
+        try:
+            completion = self.client.messages.create(  # Updated to use messages API
+                model=settings["model"],
+                max_tokens=settings["max_tokens"],
+                temperature=settings["temperature"],
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return completion.content[0].text
+        except Exception as e:
+            return f"Error generating response: {str(e)}"
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
