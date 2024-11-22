@@ -244,7 +244,7 @@
         </div>
     </div>
 
-  <script>
+<script>
     window.onload = function() {
         const chatContainer = document.getElementById('chat');
         loadMessages(); 
@@ -271,28 +271,40 @@
         const messages = JSON.parse(localStorage.getItem('chat-messages') || '[]');
         const chatContainer = document.getElementById('chat');
         
+        // Temporarily hide container while loading to prevent visual delay
+        chatContainer.style.opacity = '0';
+        
         if (messages.length === 0) {
             const greeting = "Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?";
             saveMessage(greeting, 'bot');
+            chatContainer.style.opacity = '1';
             return;
         }
 
-        chatContainer.innerHTML = '<div class="time-stamp">Today</div>';
+        // Pre-build all message HTML before inserting
+        let messagesHTML = '<div class="time-stamp">Today</div>';
+        messages.forEach(msg => {
+            messagesHTML += `
+                <div class="message ${msg.type}-message">
+                    <div class="message-content">${msg.text}</div>
+                </div>
+            `;
+        });
         
-        const typingIndicatorHTML = `
+        messagesHTML += `
             <div id="typing-indicator" class="typing-indicator">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
         `;
-        chatContainer.insertAdjacentHTML('beforeend', typingIndicatorHTML);
         
-        messages.forEach(msg => {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${msg.type}-message`;
-            messageDiv.innerHTML = `<div class="message-content">${msg.text}</div>`;
-            chatContainer.insertBefore(messageDiv, document.getElementById('typing-indicator'));
+        chatContainer.innerHTML = messagesHTML;
+        
+        // Force layout recalculation for mobile
+        requestAnimationFrame(() => {
+            chatContainer.style.opacity = '1';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         });
     }
 
@@ -301,6 +313,12 @@
         const input = document.querySelector('.message-input');
         const sendButton = document.querySelector('.send-button');
         const typingIndicator = document.getElementById('typing-indicator');
+
+        // Ensure chat container is visible on mobile
+        const resizeObserver = new ResizeObserver(() => {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+        resizeObserver.observe(chatContainer);
 
         function sendMessage() {
             const message = input.value.trim();
@@ -319,7 +337,9 @@
 
             chatContainer.appendChild(typingIndicator);
             typingIndicator.style.display = 'block';
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            requestAnimationFrame(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
 
             fetch('/api/ask', {
                 method: 'POST',
@@ -355,7 +375,9 @@
             }
             
             chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            requestAnimationFrame(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
         }
 
         sendButton.addEventListener('click', sendMessage);
@@ -365,6 +387,17 @@
                 e.preventDefault();
                 sendMessage();
             }
+        });
+        
+        // Handle mobile keyboard appearance
+        if ('virtualKeyboard' in navigator) {
+            navigator.virtualKeyboard.overlaysContent = true;
+        }
+
+        window.visualViewport?.addEventListener('resize', () => {
+            requestAnimationFrame(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
         });
     });
 </script>
