@@ -7,13 +7,12 @@ class LifeCoachSystem:
     def __init__(self):
         self.config = {
             "coaching_style": "supportive",
-            "focus_areas": ["career", "health", "relationships"],
             "llm_settings": {
                 "anthropic": {
                     "model": "claude-2.1",
                     "max_tokens": 150,
                     "temperature": 0.7,
-                    "max_message_length": 150  # Characters per message
+                    "max_message_length": 80  # Even shorter messages
                 }
             }
         }
@@ -21,43 +20,15 @@ class LifeCoachSystem:
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        history = self.format_history()
         return (
-            "You are a supportive life coach texting with a client. Keep each message under 150 characters - "
-            "like a text message. If you need to say more, split it into 2-3 separate short messages. "
-            "Be conversational and friendly. " 
-            f"Previous messages: {history}\n"
+            "You are texting with a client. VERY IMPORTANT: Break your response into multiple separate, short messages "
+            "of 1-2 sentences each. Each message must be under 80 characters. Use <message> tags to separate messages.\n\n"
+            "Example format:\n"
+            "<message>Hi! Let's talk about your resume. 📄</message>\n"
+            "<message>First, use Arial or Times New Roman, 10-12pt.</message>\n"
+            "<message>Keep margins at 1 inch all around.</message>\n\n"
             f"Client message: {user_input}"
         )
-
-    def format_history(self) -> str:
-        if not self.conversation_history:
-            return "No previous messages"
-        return "\n".join([msg["interaction"] for msg in self.conversation_history[-2:]])
-
-    def split_into_messages(self, response: str) -> List[str]:
-        max_length = self.config["llm_settings"]["anthropic"]["max_message_length"]
-        messages = []
-        
-        # Split on sentence boundaries
-        current_msg = ""
-        sentences = response.split('. ')
-        
-        for sentence in sentences:
-            if not sentence:
-                continue
-                
-            if len(current_msg) + len(sentence) <= max_length:
-                current_msg += sentence + '. '
-            else:
-                if current_msg:
-                    messages.append(current_msg.strip())
-                current_msg = sentence + '. '
-                
-        if current_msg:
-            messages.append(current_msg.strip())
-            
-        return messages
 
     def get_llm_response(self, prompt: str) -> List[str]:
         settings = self.config["llm_settings"]["anthropic"]
@@ -69,9 +40,45 @@ class LifeCoachSystem:
                 prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
                 stop_sequences=["\nHuman:", "\n\nHuman:"]
             )
-            return self.split_into_messages(completion.completion)
+            
+            # Extract messages between tags
+            messages = []
+            response = completion.completion
+            import re
+            message_matches = re.finditer(r'<message>(.*?)</message>', response, re.DOTALL)
+            
+            for match in message_matches:
+                message = match.group(1).strip()
+                if len(message) <= settings["max_message_length"]:
+                    messages.append(message)
+            
+            # If no valid tagged messages, split manually
+            if not messages:
+                return self.fallback_split(response, settings["max_message_length"])
+                
+            return messages
         except Exception as e:
-            return [f"Error generating response: {str(e)}"]
+            return [f"Error: {str(e)}"]
+
+    def fallback_split(self, text: str, max_length: int) -> List[str]:
+        messages = []
+        current = ""
+        
+        for sentence in text.split('. '):
+            if not sentence.strip():
+                continue
+                
+            if len(current) + len(sentence) <= max_length:
+                current += sentence + '. '
+            else:
+                if current:
+                    messages.append(current.strip())
+                current = sentence + '. '
+        
+        if current:
+            messages.append(current.strip())
+            
+        return messages or ["Sorry, I had trouble breaking up my response."]
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
         self.conversation_history.append({
