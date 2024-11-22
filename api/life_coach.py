@@ -10,8 +10,7 @@ class LifeCoachSystem:
                 "anthropic": {
                     "model": "claude-2.1",
                     "max_tokens": 150,
-                    "temperature": 0.7,
-                    "max_message_length": 60
+                    "temperature": 0.7
                 }
             }
         }
@@ -20,18 +19,15 @@ class LifeCoachSystem:
 
     def generate_prompt(self, user_input: str) -> str:
         return (
-            "You are texting with a client. Write naturally as if texting.\n\n"
-            "IMPORTANT RULES:\n"
-            "1. Each complete thought should be its own message\n"
-            "2. Never start a message with a conjunction (and, but, so)\n"
-            "3. Never put a comma right after a period\n"
-            "4. Use commas naturally within a single thought\n\n"
-            "CORRECT examples:\n"
-            "<message>I understand the job search is tough right now</message>\n"
-            "<message>What parts feel most overwhelming?</message>\n\n"
-            "INCORRECT examples:\n"
-            "❌ <message>The job search is tough. And let's work on it</message>\n"
-            "❌ <message>That's difficult., Let's talk about it</message>\n\n"
+            "You are texting with a client. CRITICAL INSTRUCTIONS:\n\n"
+            "- If you have multiple complete thoughts, use separate <message> tags\n"
+            "- NEVER separate complete thoughts with commas\n"
+            "- Each message should be ONE complete thought\n\n"
+            "CORRECT:\n"
+            "<message>I understand you're frustrated with the job search</message>\n"
+            "<message>What parts are most challenging for you?</message>\n\n"
+            "INCORRECT:\n"
+            "❌ <message>I understand your frustration, what parts are challenging?</message>\n\n"
             f"Client message: {user_input}"
         )
 
@@ -45,30 +41,23 @@ class LifeCoachSystem:
                 stop_sequences=["\nHuman:", "\n\nHuman:"]
             )
             
-            messages = []
+            # Simple extraction of messages
             import re
-            
-            # Extract messages and clean up any period-comma issues
-            matches = re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL)
-            for match in matches:
-                message = match.group(1).strip()
-                # Fix period-comma issues
-                message = re.sub(r'\.,\s*', '. ', message)
-                # Remove conjunctions at start of messages
-                message = re.sub(r'^(and|but|so)\s+', '', message, flags=re.IGNORECASE)
-                if message:
-                    messages.append(message)
+            messages = [
+                match.group(1).strip()
+                for match in re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL)
+                if match.group(1).strip()
+            ]
             
             return messages or ["How can I help you today?"]
             
         except Exception as e:
             return ["How can I help you today?"]
 
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
+    def process_user_input(self, user_input: str) -> List[str]:
         self.conversation_history.append({
             "timestamp": datetime.now().isoformat(),
             "interaction": user_input
         })
         
-        prompt = self.generate_prompt(user_input)
-        return self.get_llm_response(prompt)
+        return self.get_llm_response(self.generate_prompt(user_input))
