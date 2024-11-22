@@ -19,7 +19,7 @@ class LifeCoachSystem:
             },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-3-opus-20240229",
+                    "model": "claude-2.1",  # Changed to claude-2.1
                     "max_tokens": 1000,
                     "temperature": 0.7
                 }
