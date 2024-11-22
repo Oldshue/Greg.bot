@@ -26,7 +26,7 @@ class LifeCoachSystem:
             }
         }
         self.conversation_history = []
-        self.client = Anthropic()
+        self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         style = self.config["coaching_style"]
@@ -57,13 +57,13 @@ Respond in a natural, conversational way while providing meaningful coaching gui
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        message = self.client.beta.messages.create(
+        message = self.client.messages.create(
             model=settings["model"],
             max_tokens=settings["max_tokens"],
             temperature=settings["temperature"],
-            messages=[{"role": "user", "content": prompt}]
+            content=prompt
         )
-        return message.content[0].text
+        return message.content
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
