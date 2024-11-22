@@ -244,7 +244,7 @@
         </div>
     </div>
 
-    <script>
+   <script>
         window.onload = function() {
             const chatContainer = document.getElementById('chat');
             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -266,6 +266,11 @@
                 const message = input.value.trim();
                 if (!message) return;
 
+                // Remove typing indicator if it exists
+                if (typingIndicator.parentNode) {
+                    typingIndicator.parentNode.removeChild(typingIndicator);
+                }
+
                 // Add user message
                 addMessage(message, 'user');
 
@@ -274,7 +279,8 @@
                 input.style.height = '';
                 sendButton.disabled = true;
 
-                // Show typing indicator
+                // Add typing indicator after user message
+                chatContainer.appendChild(typingIndicator);
                 typingIndicator.style.display = 'block';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
@@ -304,6 +310,12 @@
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}-message`;
                 messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+                
+                // Remove typing indicator if it exists
+                if (typingIndicator.parentNode) {
+                    typingIndicator.parentNode.removeChild(typingIndicator);
+                }
+                
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
