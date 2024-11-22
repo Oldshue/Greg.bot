@@ -12,7 +12,7 @@ class LifeCoachSystem:
                     "model": "claude-2.1",
                     "max_tokens": 150,
                     "temperature": 0.7,
-                    "max_message_length": 80  # Even shorter messages
+                    "max_message_length": 80
                 }
             }
         }
@@ -21,12 +21,13 @@ class LifeCoachSystem:
 
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         return (
-            "You are texting with a client. VERY IMPORTANT: Break your response into multiple separate, short messages "
-            "of 1-2 sentences each. Each message must be under 80 characters. Use <message> tags to separate messages.\n\n"
-            "Example format:\n"
-            "<message>Hi! Let's talk about your resume. 📄</message>\n"
-            "<message>First, use Arial or Times New Roman, 10-12pt.</message>\n"
-            "<message>Keep margins at 1 inch all around.</message>\n\n"
+            "You are texting with a client. Write 2-3 short, separate messages. Each message should be a complete "
+            "thought of 1-2 sentences. Do NOT use commas or periods to separate messages - each should be a "
+            "complete standalone text. Use <message> tags to separate them.\n\n"
+            "Example:\n"
+            "<message>Great! Let's work on your resume formatting 📄</message>\n"
+            "<message>Start with a clean font like Arial or Times New Roman</message>\n"
+            "<message>What section would you like to tackle first?</message>\n\n"
             f"Client message: {user_input}"
         )
 
@@ -43,42 +44,44 @@ class LifeCoachSystem:
             
             # Extract messages between tags
             messages = []
-            response = completion.completion
             import re
-            message_matches = re.finditer(r'<message>(.*?)</message>', response, re.DOTALL)
+            message_matches = re.finditer(r'<message>(.*?)</message>', completion.completion, re.DOTALL)
             
             for match in message_matches:
                 message = match.group(1).strip()
-                if len(message) <= settings["max_message_length"]:
+                if message:
                     messages.append(message)
             
-            # If no valid tagged messages, split manually
-            if not messages:
-                return self.fallback_split(response, settings["max_message_length"])
-                
-            return messages
+            return messages or self.fallback_split(completion.completion)
+            
         except Exception as e:
-            return [f"Error: {str(e)}"]
+            return ["Sorry, I had trouble with that response"]
 
-    def fallback_split(self, text: str, max_length: int) -> List[str]:
+    def fallback_split(self, text: str) -> List[str]:
+        # Remove any awkward comma separations
+        text = text.replace(".,", ".")
+        text = text.replace("!", ".\n")
+        text = text.replace("?", "?\n")
+        
+        # Split on sentence boundaries
+        sentences = [s.strip() for s in text.split("\n") if s.strip()]
+        
+        # Group into reasonable message lengths
         messages = []
         current = ""
         
-        for sentence in text.split('. '):
-            if not sentence.strip():
-                continue
-                
-            if len(current) + len(sentence) <= max_length:
-                current += sentence + '. '
+        for sentence in sentences:
+            if len(current) + len(sentence) < 80:
+                current += " " + sentence if current else sentence
             else:
                 if current:
-                    messages.append(current.strip())
-                current = sentence + '. '
-        
+                    messages.append(current)
+                current = sentence
+                
         if current:
-            messages.append(current.strip())
+            messages.append(current)
             
-        return messages or ["Sorry, I had trouble breaking up my response."]
+        return messages or ["Let's talk about your resume"]
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> List[str]:
         self.conversation_history.append({
