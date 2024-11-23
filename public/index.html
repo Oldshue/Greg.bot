@@ -209,7 +209,12 @@
         <div></div>
     </header>
 
-    <div id="chat" class="chat-container"></div>
+    <div id="chat" class="chat-container">
+        <div class="time-stamp">
+            Today (<span id="initial-time"></span>)
+        </div>
+        <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+    </div>
     <div class="input-container">
         <div class="message-input-wrapper">
             <textarea 
@@ -234,67 +239,61 @@
             const input = document.querySelector('.message-input');
             const sendButton = document.querySelector('.send-button');
             const resetButton = document.querySelector('.reset-button');
+            const initialTimeElement = document.getElementById('initial-time');
 
             const initialMessage = {
                 text: "Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?",
-                type: "bot",
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                type: "bot"
             };
 
             // Load chat history from localStorage
             function loadChatHistory() {
                 const savedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
+                const initialTime = localStorage.getItem('initialTime');
+
                 if (!savedMessages.length) {
-                    savedMessages.push(initialMessage); // Add initial message if no history exists
+                    savedMessages.push(initialMessage);
+                    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                    localStorage.setItem('initialTime', now);
+                    setInitialTime(now);
+                } else {
+                    setInitialTime(initialTime);
                 }
-                savedMessages.forEach(({ text, type, timestamp }) => {
-                    addMessage(text, type, timestamp);
+
+                savedMessages.forEach(({ text, type }) => {
+                    addMessage(text, type);
                 });
             }
 
             // Save chat history to localStorage
             function saveChatHistory() {
                 const messages = Array.from(chatContainer.querySelectorAll('.message')).map(messageDiv => ({
-                    text: messageDiv.querySelector('.text').textContent,
-                    type: messageDiv.classList.contains('bot-message') ? 'bot' : 'user',
-                    timestamp: messageDiv.querySelector('.timestamp').textContent
+                    text: messageDiv.textContent,
+                    type: messageDiv.classList.contains('bot-message') ? 'bot' : 'user'
                 }));
                 localStorage.setItem('chatHistory', JSON.stringify(messages));
             }
 
+            // Function to set the initial time above the initial message
+            function setInitialTime(time) {
+                initialTimeElement.textContent = time;
+            }
+
             // Function to add a message to the chat
-            function addMessage(text, type, timestamp = null) {
+            function addMessage(text, type) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}-message clearfix`;
-                messageDiv.innerHTML = `
-                    <div class="text">${text}</div>
-                    <div class="timestamp" style="font-size: 10px; color: gray; text-align: right;">${timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
-                `;
+                messageDiv.textContent = text;
                 chatContainer.appendChild(messageDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
 
-            // Function to send a message
-            function sendMessage() {
-                if (!input.value.trim()) return;
-
-                const userMessage = input.value.trim();
-                addMessage(userMessage, 'user');
-                input.value = '';
-                input.style.height = '';
-                sendButton.disabled = true;
-
-                // Simulate bot response
-                const typingIndicator = showTypingIndicator();
-                setTimeout(() => {
-                    typingIndicator.remove();
-                    addMessage("Thanks for your message! Let me know what else I can help with.", 'bot');
-                    saveChatHistory();
-                }, 1000);
-            }
-
             // Function to show typing indicator
             function showTypingIndicator() {
+                const clearDiv = document.createElement('div');
+                clearDiv.className = 'clearfix';
+                chatContainer.appendChild(clearDiv);
+
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'typing-indicator clearfix';
                 typingDiv.innerHTML = `
@@ -309,11 +308,34 @@
                 return typingDiv;
             }
 
+            // Function to send a message
+            function sendMessage() {
+                const message = input.value.trim();
+                if (!message) return;
+
+                addMessage(message, 'user');
+                input.value = '';
+                input.style.height = '';
+                sendButton.disabled = true;
+
+                const typingIndicator = showTypingIndicator();
+
+                // Simulate bot response
+                setTimeout(() => {
+                    typingIndicator.remove();
+                    addMessage("Thanks for your message! Let me know what else I can help with.", 'bot');
+                    saveChatHistory();
+                }, 1000);
+            }
+
             // Function to reset the chat
             function resetChat() {
                 localStorage.removeItem('chatHistory');
+                localStorage.removeItem('initialTime');
                 chatContainer.innerHTML = '';
-                addMessage(initialMessage.text, 'bot', initialMessage.timestamp);
+                const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                setInitialTime(now);
+                addMessage(initialMessage.text, 'bot');
                 saveChatHistory();
             }
 
