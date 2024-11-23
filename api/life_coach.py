@@ -7,7 +7,7 @@ class LifeCoachSystem:
     def __init__(self):
         self.config = {
             "coaching_style": "supportive",
-            "focus_areas": ["career", "health", "relationships"],
+            "focus_areas": ["career", "health", "relationships", "goals"],
             "response_length": "short",
             "follow_up_questions": True,
             "tone": "casual",
