@@ -211,10 +211,11 @@
 
     <div id="chat" class="chat-container">
         <div class="time-stamp">
-            Today (<span id="initial-time"></span>)
+            Today <span id="initial-time"></span>
         </div>
         <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
     </div>
+
     <div class="input-container">
         <div class="message-input-wrapper">
             <textarea 
@@ -246,7 +247,6 @@
                 type: "bot"
             };
 
-            // Load chat history from localStorage
             function loadChatHistory() {
                 const savedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
                 const initialTime = localStorage.getItem('initialTime');
@@ -265,7 +265,6 @@
                 });
             }
 
-            // Save chat history to localStorage
             function saveChatHistory() {
                 const messages = Array.from(chatContainer.querySelectorAll('.message')).map(messageDiv => ({
                     text: messageDiv.textContent,
@@ -274,12 +273,10 @@
                 localStorage.setItem('chatHistory', JSON.stringify(messages));
             }
 
-            // Function to set the initial time above the initial message
             function setInitialTime(time) {
                 initialTimeElement.textContent = time;
             }
 
-            // Function to add a message to the chat
             function addMessage(text, type) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}-message clearfix`;
@@ -288,7 +285,6 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
 
-            // Function to show typing indicator
             function showTypingIndicator() {
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'typing-indicator clearfix';
@@ -304,7 +300,6 @@
                 return typingDiv;
             }
 
-            // Function to send a message
             function sendMessage() {
                 const message = input.value.trim();
                 if (!message) return;
@@ -316,7 +311,6 @@
 
                 const typingIndicator = showTypingIndicator();
 
-                // Send the message to backend
                 fetch('/api/ask', {
                     method: 'POST',
                     headers: {
@@ -342,7 +336,6 @@
                 });
             }
 
-            // Function to reset the chat
             function resetChat() {
                 localStorage.removeItem('chatHistory');
                 localStorage.removeItem('initialTime');
@@ -353,10 +346,8 @@
                 saveChatHistory();
             }
 
-            // Load chat history on page load
             loadChatHistory();
 
-            // Event Listeners
             resetButton.addEventListener('click', resetChat);
             sendButton.addEventListener('click', sendMessage);
             input.addEventListener('keydown', function (e) {
