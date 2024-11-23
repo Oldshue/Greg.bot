@@ -29,6 +29,17 @@
             justify-content: center;
         }
 
+        .reset-button {
+            position: absolute;
+            left: 10px;
+            top: 16px;
+            border: none;
+            background: none;
+            color: #007aff;
+            padding: 0;
+            margin: 0;
+        }
+
         .header h1 {
             margin: 0;
             font-size: 16px;
@@ -36,18 +47,6 @@
             font-weight: 600;
             letter-spacing: -0.01em;
             font-family: 'Inter', sans-serif;
-        }
-
-        .reset-button {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            color: #007aff;
-            background: none;
-            border: none;
-            font-size: 15px;
-            cursor: pointer;
-            z-index: 101;
         }
 
         .chat-container {
@@ -171,8 +170,8 @@
     </style>
 </head>
 <body>
-    <button class="reset-button">Reset</button>
     <header class="header">
+        <button class="reset-button">Reset</button>
         <h1>Greg.bot</h1>
     </header>
 
