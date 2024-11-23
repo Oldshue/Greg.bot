@@ -246,20 +246,23 @@
                 type: "bot"
             };
 
-            // Load chat history from localStorage
+            // Load chat history
             function loadChatHistory() {
                 const savedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
                 const initialTime = localStorage.getItem('initialTime');
 
                 if (!savedMessages.length) {
-                    savedMessages.push(initialMessage);
+                    // If no chat history, add initial message and timestamp
                     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
                     localStorage.setItem('initialTime', now);
                     setInitialTime(now);
+                    savedMessages.push(initialMessage);
+                    localStorage.setItem('chatHistory', JSON.stringify(savedMessages));
                 } else {
                     setInitialTime(initialTime);
                 }
 
+                // Render chat history
                 savedMessages.forEach(({ text, type }) => {
                     addMessage(text, type);
                 });
@@ -274,12 +277,12 @@
                 localStorage.setItem('chatHistory', JSON.stringify(messages));
             }
 
-            // Function to set the initial time above the initial message
+            // Set initial time
             function setInitialTime(time) {
                 initialTimeElement.textContent = time;
             }
 
-            // Function to add a message to the chat
+            // Add a message to the chat
             function addMessage(text, type) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${type}-message clearfix`;
@@ -288,7 +291,7 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
 
-            // Function to show typing indicator
+            // Show typing indicator
             function showTypingIndicator() {
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'typing-indicator clearfix';
@@ -304,19 +307,26 @@
                 return typingDiv;
             }
 
-            // Function to send a message
+            // Remove typing indicator
+            function removeTypingIndicator(typingDiv) {
+                if (typingDiv) typingDiv.remove();
+            }
+
+            // Send a message
             function sendMessage() {
                 const message = input.value.trim();
                 if (!message) return;
 
+                // Add user's message
                 addMessage(message, 'user');
                 input.value = '';
                 input.style.height = '';
                 sendButton.disabled = true;
 
+                // Show typing indicator
                 const typingIndicator = showTypingIndicator();
 
-                // Send the message to backend
+                // Simulate backend response
                 fetch('/api/ask', {
                     method: 'POST',
                     headers: {
@@ -326,7 +336,8 @@
                 })
                 .then((response) => response.json())
                 .then((data) => {
-                    typingIndicator.remove();
+                    // Remove typing indicator and show bot's response
+                    removeTypingIndicator(typingIndicator);
                     if (data.response) {
                         addMessage(data.response, 'bot');
                     } else {
@@ -335,14 +346,14 @@
                     saveChatHistory();
                 })
                 .catch((error) => {
-                    typingIndicator.remove();
+                    removeTypingIndicator(typingIndicator);
                     console.error('Error:', error);
                     addMessage("There was an error connecting to the server. Please try again.", 'bot');
                     saveChatHistory();
                 });
             }
 
-            // Function to reset the chat
+            // Reset the chat
             function resetChat() {
                 localStorage.removeItem('chatHistory');
                 localStorage.removeItem('initialTime');
@@ -356,7 +367,7 @@
             // Load chat history on page load
             loadChatHistory();
 
-            // Event Listeners
+            // Event listeners
             resetButton.addEventListener('click', resetChat);
             sendButton.addEventListener('click', sendMessage);
             input.addEventListener('keydown', function (e) {
