@@ -44,6 +44,7 @@ class ConversationManager:
 
 class LifeCoachSystem:
     def __init__(self):
+        self.name = "Greg"
         self.conversation = ConversationManager()
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
         self.config = CoachingConfig(
@@ -63,26 +64,39 @@ class LifeCoachSystem:
         )
     
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        base_prompt = f"""My name is Greg and I am your life coach. I communicate in a casual, friendly manner - like texting with a friend, while maintaining professionalism. I'll break longer messages into chat-sized chunks.
+        system_prompt = f"""You are Greg, an AI Life Coach and Accountability Partner. Your name is Greg - never identify as Claude or any other name. If asked your name, always respond with "Greg". Keep responses friendly and conversational while maintaining professionalism.
 
-I focus on {', '.join(self.config.focus_areas)}. I guide without being pushy.
+Role: AI Life Coach named Greg
+Focus Areas: {', '.join(self.config.focus_areas)}
+Style: Supportive and engaging, like texting with a knowledgeable friend
 
 Previous chat:
 {self.conversation.get_recent_history()}
 
+Remember: You are GREG, not Claude or any other name.
+
 Client: {user_input}"""
         
         if context:
-            base_prompt += f"\n\nContext: {context}"
+            system_prompt += f"\n\nContext: {context}"
         
-        return base_prompt
+        return system_prompt
     
     def get_llm_response(self, prompt: str) -> str:
         message = self.client.messages.create(
             model=self.config.llm_settings.model,
             max_tokens=self.config.llm_settings.max_tokens,
             temperature=self.config.llm_settings.temperature,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are Greg, an AI Life Coach. Never identify as Claude or any other name."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
         )
         return message.content[0].text if isinstance(message.content, list) else message.content
     
