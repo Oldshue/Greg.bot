@@ -258,6 +258,10 @@
 
             // Function to show typing indicator
             function showTypingIndicator() {
+                const clearDiv = document.createElement('div');
+                clearDiv.className = 'clearfix';
+                chatContainer.appendChild(clearDiv);
+
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'typing-indicator clearfix';
                 typingDiv.innerHTML = `
@@ -289,15 +293,17 @@
                 input.style.height = '';
                 sendButton.disabled = true;
 
-                // Add typing indicator
-                const typingIndicator = showTypingIndicator();
-
-                // Simulated bot response with delay (replace with real API call)
+                // Small delay before showing typing indicator
                 setTimeout(() => {
-                    typingIndicator.remove(); // Remove typing indicator
-                    addMessage("Thanks for reaching out! How can I assist further?", 'bot');
-                    awaitingResponse = false;
-                }, 1000);
+                    const typingIndicator = showTypingIndicator();
+
+                    // Simulated bot response (replace with actual API call)
+                    setTimeout(() => {
+                        typingIndicator.remove();
+                        addMessage("Thanks for reaching out! How can I assist further?", 'bot');
+                        awaitingResponse = false;
+                    }, 1000);
+                }, 500);
             }
 
             // Function to add a message to the chat
