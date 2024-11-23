@@ -293,17 +293,15 @@
                 input.style.height = '';
                 sendButton.disabled = true;
 
-                // Small delay before showing typing indicator
-                setTimeout(() => {
-                    const typingIndicator = showTypingIndicator();
+                // Add typing indicator
+                const typingIndicator = showTypingIndicator();
 
-                    // Simulated bot response (replace with actual API call)
-                    setTimeout(() => {
-                        typingIndicator.remove();
-                        addMessage("Thanks for reaching out! How can I assist further?", 'bot');
-                        awaitingResponse = false;
-                    }, 1000);
-                }, 500);
+                // Simulated bot response (replace with actual API call)
+                setTimeout(() => {
+                    typingIndicator.remove(); // Remove typing indicator
+                    addMessage("Thanks for your message! Let me know what else I can help with.", 'bot');
+                    awaitingResponse = false;
+                }, 1000);
             }
 
             // Function to add a message to the chat
@@ -317,14 +315,12 @@
 
             // Function to reset the chat
             function resetChat() {
-                // Clear all chat messages but keep the time-stamp
-                const timeStampDiv = `
+                chatContainer.innerHTML = `
                     <div class="time-stamp">
                         Today <span id="current-time"></span>
                     </div>
                     <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
                 `;
-                chatContainer.innerHTML = timeStampDiv;
 
                 // Reapply the time and reset other values
                 updateTime();
