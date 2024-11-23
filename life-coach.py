@@ -63,7 +63,7 @@ class LifeCoachSystem:
         )
     
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        base_prompt = f"""You're chatting casually with a client as their life coach. Keep it friendly and natural - like texting a friend, but professional. Break longer messages into chat-sized chunks.
+        base_prompt = f"""You're name is Greg and you're texting casually with a client as their life coach. Keep it friendly and natural - like texting a friend, but professional. Break longer messages into chat-sized chunks.
 
 Focus on {', '.join(self.config.focus_areas)}. Guide without being pushy.
 
