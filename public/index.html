@@ -318,12 +318,31 @@
     }
 
     function addMessage(text, type) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}-message clearfix`;
-        messageDiv.textContent = text;
-        chatContainer.appendChild(messageDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        saveChatHistory();
+        try {
+            if (typeof text === 'string' && text.startsWith('[{')) {
+                const messages = JSON.parse(text);
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = `message ${msg.type}-message clearfix`;
+                    div.textContent = msg.text;
+                    chatContainer.appendChild(div);
+                });
+            } else {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}-message clearfix`;
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            saveChatHistory();
+        } catch (e) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message clearfix`;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            saveChatHistory();
+        }
     }
 
     loadChatHistory();
