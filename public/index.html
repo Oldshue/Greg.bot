@@ -225,63 +225,75 @@
             <button class="send-button" disabled>Send</button>
         </div>
     </div>
-    <script>
-        function auto_grow(element) {
-            element.style.height = "1px";
-            element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
-            document.querySelector('.send-button').disabled = !element.value.trim();
+   <script>
+    function auto_grow(element) {
+        element.style.height = "1px";
+        element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
+        document.querySelector('.send-button').disabled = !element.value.trim();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('chat');
+        const input = document.querySelector('.message-input');
+        const sendButton = document.querySelector('.send-button');
+        const resetButton = document.querySelector('.reset-button');
+
+        let awaitingResponse = false;
+
+        function showTypingIndicator() {
+            // Remove any existing typing indicator
+            const existingIndicator = document.querySelector('.typing-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Create new typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator clearfix';
+            typingDiv.innerHTML = `
+                <div class="typing-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            `;
+            
+            // Add it to chat and scroll
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return typingDiv;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatContainer = document.getElementById('chat');
-            const input = document.querySelector('.message-input');
-            const sendButton = document.querySelector('.send-button');
-            const resetButton = document.querySelector('.reset-button');
+        function resetChat() {
+            chatContainer.innerHTML = `
+                <div class="time-stamp">Today</div>
+                <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+            `;
+            input.value = '';
+            input.style.height = '';
+            sendButton.disabled = true;
+            awaitingResponse = false;
+        }
 
-            let awaitingResponse = false;
+        function sendMessage() {
+            if (awaitingResponse) return;
 
-            function showTypingIndicator() {
-                const typingDiv = document.createElement('div');
-                typingDiv.className = 'typing-indicator clearfix';
-                typingDiv.innerHTML = `
-                    <div class="typing-dots">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                `;
-                chatContainer.appendChild(typingDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                return typingDiv;
-            }
+            const message = input.value.trim();
+            if (!message) return;
 
-            function resetChat() {
-                chatContainer.innerHTML = `
-                    <div class="time-stamp">Today</div>
-                    <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
-                `;
-                input.value = '';
-                input.style.height = '';
-                sendButton.disabled = true;
-                awaitingResponse = false;
-            }
+            // Set awaiting flag
+            awaitingResponse = true;
 
-            function sendMessage() {
-                if (awaitingResponse) return;
+            // Add user message
+            addMessage(message, 'user');
 
-                const message = input.value.trim();
-                if (!message) return;
+            // Clear input and reset height
+            input.value = '';
+            input.style.height = '';
+            sendButton.disabled = true;
 
-                // Add user message
-                addMessage(message, 'user');
-
-                // Clear input and reset height
-                input.value = '';
-                input.style.height = '';
-                sendButton.disabled = true;
-
-                // Set awaiting flag and show typing indicator
-                awaitingResponse = true;
+            // Small delay before showing typing indicator
+            setTimeout(() => {
                 const typingIndicator = showTypingIndicator();
 
                 // Send to backend
@@ -305,26 +317,27 @@
                     console.error('Error:', error);
                     awaitingResponse = false;
                 });
+            }, 500);
+        }
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message clearfix`;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        resetButton.addEventListener('click', resetChat);
+        sendButton.addEventListener('click', sendMessage);
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
             }
-
-            function addMessage(text, type) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${type}-message clearfix`;
-                messageDiv.textContent = text;
-                chatContainer.appendChild(messageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-
-            resetButton.addEventListener('click', resetChat);
-            sendButton.addEventListener('click', sendMessage);
-
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
         });
-    </script>
+    });
+</script>
 </body>
 </html>
