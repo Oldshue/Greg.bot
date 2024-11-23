@@ -15,7 +15,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-         .header {
+        .header {
             background-color: #ffffff;
             position: fixed;
             top: 0;
@@ -26,7 +26,7 @@
             padding: 0 16px;
             box-sizing: border-box;
             display: grid;
-            grid-template-columns: 60px auto 60px;
+            grid-template-columns: calc(100% * 2/7) auto calc(100% * 2/7);
             align-items: center;
         }
 
@@ -36,7 +36,8 @@
             border: none;
             padding: 8px 0;
             cursor: pointer;
-            text-align: left;
+            text-align: right;
+            padding-right: 16px;
         }
 
         .header h1 {
@@ -206,6 +207,8 @@
             const sendButton = document.querySelector('.send-button');
             const resetButton = document.querySelector('.reset-button');
 
+            let awaitingResponse = false;
+
             function resetChat() {
                 chatContainer.innerHTML = `
                     <div class="time-stamp">Today</div>
@@ -214,9 +217,12 @@
                 input.value = '';
                 input.style.height = '';
                 sendButton.disabled = true;
+                awaitingResponse = false;
             }
 
             function sendMessage() {
+                if (awaitingResponse) return;
+
                 const message = input.value.trim();
                 if (!message) return;
 
@@ -227,6 +233,9 @@
                 input.value = '';
                 input.style.height = '';
                 sendButton.disabled = true;
+
+                // Set awaiting flag
+                awaitingResponse = true;
 
                 // Send to backend
                 fetch('/api/ask', {
@@ -241,8 +250,12 @@
                     if (data.response) {
                         addMessage(data.response, 'bot');
                     }
+                    awaitingResponse = false;
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    awaitingResponse = false;
+                });
             }
 
             function addMessage(text, type) {
