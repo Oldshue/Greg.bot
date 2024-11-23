@@ -290,10 +290,6 @@
 
             // Function to show typing indicator
             function showTypingIndicator() {
-                const clearDiv = document.createElement('div');
-                clearDiv.className = 'clearfix';
-                chatContainer.appendChild(clearDiv);
-
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'typing-indicator clearfix';
                 typingDiv.innerHTML = `
@@ -320,12 +316,30 @@
 
                 const typingIndicator = showTypingIndicator();
 
-                // Simulate bot response
-                setTimeout(() => {
+                // Send the message to backend
+                fetch('/api/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: message }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
                     typingIndicator.remove();
-                    addMessage("Thanks for your message! Let me know what else I can help with.", 'bot');
+                    if (data.response) {
+                        addMessage(data.response, 'bot');
+                    } else {
+                        addMessage("Sorry, I couldn't understand that. Please try again!", 'bot');
+                    }
                     saveChatHistory();
-                }, 1000);
+                })
+                .catch((error) => {
+                    typingIndicator.remove();
+                    console.error('Error:', error);
+                    addMessage("There was an error connecting to the server. Please try again.", 'bot');
+                    saveChatHistory();
+                });
             }
 
             // Function to reset the chat
