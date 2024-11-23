@@ -26,7 +26,19 @@
             border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .reset-button {
+            border: none;
+            background: none;
+            color: #007aff;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
         }
 
         .header h1 {
@@ -36,6 +48,9 @@
             font-weight: 600;
             letter-spacing: -0.01em;
             font-family: 'Inter', sans-serif;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .chat-container {
@@ -160,6 +175,7 @@
 </head>
 <body>
     <header class="header">
+        <button class="reset-button">Reset</button>
         <h1>Greg.bot</h1>
     </header>
 
@@ -191,6 +207,17 @@
             const chatContainer = document.getElementById('chat');
             const input = document.querySelector('.message-input');
             const sendButton = document.querySelector('.send-button');
+            const resetButton = document.querySelector('.reset-button');
+
+            function resetChat() {
+                chatContainer.innerHTML = `
+                    <div class="time-stamp">Today</div>
+                    <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+                `;
+                input.value = '';
+                input.style.height = '';
+                sendButton.disabled = true;
+            }
 
             function sendMessage() {
                 const message = input.value.trim();
@@ -229,6 +256,7 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
 
+            resetButton.addEventListener('click', resetChat);
             sendButton.addEventListener('click', sendMessage);
 
             input.addEventListener('keydown', function(e) {
