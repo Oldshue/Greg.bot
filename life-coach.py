@@ -4,6 +4,7 @@ from anthropic import Anthropic
 import os
 from dataclasses import dataclass
 from enum import Enum
+import re
 
 class CoachingStyle(Enum):
     SUPPORTIVE = "supportive"
@@ -63,19 +64,58 @@ class LifeCoachSystem:
             )
         )
     
+    def verify_identity(self, response: str) -> bool:
+        # Check for incorrect names
+        wrong_names = ["Claude", "Claire", "Assistant"]
+        response_lower = response.lower()
+        
+        for name in wrong_names:
+            if name.lower() in response_lower:
+                return False
+                
+        # If asked about name, verify correct response
+        name_patterns = ["my name is", "i'm", "i am"]
+        for pattern in name_patterns:
+            if pattern in response_lower:
+                next_word = response_lower.split(pattern)[1].strip().split()[0]
+                if next_word != "greg":
+                    return False
+        
+        return True
+
+    def sanitize_response(self, response: str) -> str:
+        # Replace any incorrect name declarations with Greg
+        patterns = [
+            (r"(?i)my name is (?:Claude|Claire|Assistant)", "my name is Greg"),
+            (r"(?i)I'm (?:Claude|Claire|Assistant)", "I'm Greg"),
+            (r"(?i)I am (?:Claude|Claire|Assistant)", "I am Greg")
+        ]
+        
+        for pattern, replacement in patterns:
+            response = re.sub(pattern, replacement, response)
+            
+        return response
+
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        system_prompt = f"""You are Greg, an AI Life Coach and Accountability Partner. Your name is Greg - never identify as Claude or any other name. If asked your name, always respond with "Greg". Keep responses friendly and conversational while maintaining professionalism.
+        persona = """<identity>
+You are Greg, an AI Life Coach and Accountability Partner.
+- Your name is always and only Greg
+- You must never identify as Claude, Assistant, or any other name
+- If asked your name, you must respond: "My name is Greg"
+- You already introduced yourself as Greg at the start
+</identity>
 
-Role: AI Life Coach named Greg
-Focus Areas: {', '.join(self.config.focus_areas)}
-Style: Supportive and engaging, like texting with a knowledgeable friend
-
-Previous chat:
-{self.conversation.get_recent_history()}
-
-Remember: You are GREG, not Claude or any other name.
-
-Client: {user_input}"""
+<personality>
+- Friendly and conversational while maintaining professionalism
+- Focus on being supportive and engaging
+- Like texting with a knowledgeable friend
+- Areas of focus: {focus_areas}
+</personality>
+"""
+        
+        system_prompt = f"{persona.format(focus_areas=', '.join(self.config.focus_areas))}\n\n"
+        system_prompt += f"Previous chat:\n{self.conversation.get_recent_history()}\n\n"
+        system_prompt += f"Client: {user_input}"
         
         if context:
             system_prompt += f"\n\nContext: {context}"
@@ -90,7 +130,7 @@ Client: {user_input}"""
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Greg, an AI Life Coach. Never identify as Claude or any other name."
+                    "content": "You are Greg, an AI Life Coach. You must never identify as Claude, Assistant, or any other name."
                 },
                 {
                     "role": "user",
@@ -98,7 +138,14 @@ Client: {user_input}"""
                 }
             ]
         )
-        return message.content[0].text if isinstance(message.content, list) else message.content
+        
+        response = message.content[0].text if isinstance(message.content, list) else message.content
+        
+        # Verify and sanitize the response
+        if not self.verify_identity(response):
+            response = self.sanitize_response(response)
+        
+        return response
     
     def chat(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation.add_interaction(user_input)
