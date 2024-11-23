@@ -234,12 +234,14 @@
             document.querySelector('.send-button').disabled = !element.value.trim();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const chatContainer = document.getElementById('chat');
             const input = document.querySelector('.message-input');
             const sendButton = document.querySelector('.send-button');
             const resetButton = document.querySelector('.reset-button');
             const currentTimeSpan = document.getElementById('current-time');
+
+            let awaitingResponse = false;
 
             // Function to update the current time
             function updateTime() {
@@ -254,23 +256,67 @@
             // Update time every minute
             setInterval(updateTime, 60000);
 
+            // Function to send a message
+            function sendMessage() {
+                if (awaitingResponse) return;
+
+                const message = input.value.trim();
+                if (!message) return;
+
+                awaitingResponse = true;
+
+                // Add user message
+                addMessage(message, 'user');
+
+                // Clear input and reset height
+                input.value = '';
+                input.style.height = '';
+                sendButton.disabled = true;
+
+                // Small delay before simulating bot response
+                setTimeout(() => {
+                    // Simulated bot response (replace this with an actual API call)
+                    addMessage("Thanks for your message! I'll respond shortly.", 'bot');
+                    awaitingResponse = false;
+                }, 1000);
+            }
+
+            // Function to add a message to the chat
+            function addMessage(text, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}-message clearfix`;
+                messageDiv.textContent = text;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Function to reset the chat
             function resetChat() {
-                chatContainer.innerHTML = `
-                    <div class="time-stamp">Today <span id="current-time"></span></div>
+                // Clear all chat messages but keep the time-stamp
+                const timeStampDiv = `
+                    <div class="time-stamp">
+                        Today <span id="current-time"></span>
+                    </div>
                     <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
                 `;
+                chatContainer.innerHTML = timeStampDiv;
+
+                // Reapply the time and reset other values
                 updateTime();
                 input.value = '';
                 input.style.height = '';
                 sendButton.disabled = true;
+                awaitingResponse = false;
             }
 
+            // Event Listeners
             resetButton.addEventListener('click', resetChat);
+            sendButton.addEventListener('click', sendMessage);
 
-            input.addEventListener('keydown', function(e) {
+            input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    // Add your message-sending functionality here
+                    sendMessage();
                 }
             });
         });
