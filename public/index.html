@@ -226,113 +226,118 @@
         </div>
     </div>
    <script>
-    function auto_grow(element) {
-        element.style.height = "1px";
-        element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
-        document.querySelector('.send-button').disabled = !element.value.trim();
+    document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chat');
+    const input = document.querySelector('.message-input');
+    const sendButton = document.querySelector('.send-button');
+    const resetButton = document.querySelector('.reset-button');
+
+    let awaitingResponse = false;
+
+    function loadChatHistory() {
+        const savedChat = localStorage.getItem('chatHistory');
+        if (savedChat) {
+            chatContainer.innerHTML = savedChat;
+        }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const chatContainer = document.getElementById('chat');
-        const input = document.querySelector('.message-input');
-        const sendButton = document.querySelector('.send-button');
-        const resetButton = document.querySelector('.reset-button');
+    function saveChatHistory() {
+        localStorage.setItem('chatHistory', chatContainer.innerHTML);
+    }
 
-        let awaitingResponse = false;
+    function showTypingIndicator() {
+        const clearDiv = document.createElement('div');
+        clearDiv.className = 'clearfix';
+        chatContainer.appendChild(clearDiv);
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator clearfix';
+        typingDiv.innerHTML = `
+            <div class="typing-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return typingDiv;
+    }
 
-        function showTypingIndicator() {
-            const clearDiv = document.createElement('div');
-            clearDiv.className = 'clearfix';
-            chatContainer.appendChild(clearDiv);
-            
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator clearfix';
-            typingDiv.innerHTML = `
-                <div class="typing-dots">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
-            `;
-            chatContainer.appendChild(typingDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return typingDiv;
+    function resetChat() {
+        chatContainer.innerHTML = `
+            <div class="time-stamp">Today</div>
+            <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+        `;
+        input.value = '';
+        input.style.height = '';
+        sendButton.disabled = true;
+        awaitingResponse = false;
+        localStorage.removeItem('chatHistory');
+    }
+
+    function sendMessage() {
+        if (awaitingResponse) return;
+
+        const message = input.value.trim();
+        if (!message) return;
+
+        awaitingResponse = true;
+
+        addMessage(message, 'user');
+
+        input.value = '';
+        input.style.height = '';
+        sendButton.disabled = true;
+
+        setTimeout(() => {
+            const typingIndicator = showTypingIndicator();
+
+            fetch('/api/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                typingIndicator.remove();
+                if (data.response) {
+                    addMessage(data.response, 'bot');
+                }
+                awaitingResponse = false;
+                saveChatHistory();
+            })
+            .catch(error => {
+                typingIndicator.remove();
+                console.error('Error:', error);
+                awaitingResponse = false;
+            });
+        }, 500);
+    }
+
+    function addMessage(text, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message clearfix`;
+        messageDiv.textContent = text;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        saveChatHistory();
+    }
+
+    loadChatHistory();
+
+    resetButton.addEventListener('click', resetChat);
+    sendButton.addEventListener('click', sendMessage);
+
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
         }
-
-        function resetChat() {
-            chatContainer.innerHTML = `
-                <div class="time-stamp">Today</div>
-                <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
-            `;
-            input.value = '';
-            input.style.height = '';
-            sendButton.disabled = true;
-            awaitingResponse = false;
-        }
-
-        function sendMessage() {
-            if (awaitingResponse) return;
-
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Set awaiting flag
-            awaitingResponse = true;
-
-            // Add user message
-            addMessage(message, 'user');
-
-            // Clear input and reset height
-            input.value = '';
-            input.style.height = '';
-            sendButton.disabled = true;
-
-            // Small delay before showing typing indicator
-            setTimeout(() => {
-                const typingIndicator = showTypingIndicator();
-
-                // Send to backend
-                fetch('/api/ask', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ question: message })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    typingIndicator.remove();
-                    if (data.response) {
-                        addMessage(data.response, 'bot');
-                    }
-                    awaitingResponse = false;
-                })
-                .catch(error => {
-                    typingIndicator.remove();
-                    console.error('Error:', error);
-                    awaitingResponse = false;
-                });
-            }, 500);
-        }
-
-        function addMessage(text, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}-message clearfix`;
-            messageDiv.textContent = text;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        resetButton.addEventListener('click', resetChat);
-        sendButton.addEventListener('click', sendMessage);
-
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
     });
+});
 </script>
 </body>
 </html>
