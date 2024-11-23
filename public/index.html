@@ -296,12 +296,30 @@
                 // Add typing indicator
                 const typingIndicator = showTypingIndicator();
 
-                // Simulated bot response (replace with actual API call)
-                setTimeout(() => {
-                    typingIndicator.remove(); // Remove typing indicator
-                    addMessage("Thanks for your message! Let me know what else I can help with.", 'bot');
+                // Send message to backend
+                fetch('/api/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: message }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    typingIndicator.remove();
+                    if (data.response) {
+                        addMessage(data.response, 'bot');
+                    } else {
+                        addMessage("Oops, something went wrong. Please try again!", 'bot');
+                    }
                     awaitingResponse = false;
-                }, 1000);
+                })
+                .catch((error) => {
+                    typingIndicator.remove();
+                    console.error('Error:', error);
+                    addMessage("I couldn't process your message. Try again later.", 'bot');
+                    awaitingResponse = false;
+                });
             }
 
             // Function to add a message to the chat
