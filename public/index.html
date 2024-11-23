@@ -256,6 +256,22 @@
             // Update time every minute
             setInterval(updateTime, 60000);
 
+            // Function to show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator clearfix';
+                typingDiv.innerHTML = `
+                    <div class="typing-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                `;
+                chatContainer.appendChild(typingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return typingDiv;
+            }
+
             // Function to send a message
             function sendMessage() {
                 if (awaitingResponse) return;
@@ -273,10 +289,13 @@
                 input.style.height = '';
                 sendButton.disabled = true;
 
-                // Small delay before simulating bot response
+                // Add typing indicator
+                const typingIndicator = showTypingIndicator();
+
+                // Simulated bot response with delay (replace with real API call)
                 setTimeout(() => {
-                    // Simulated bot response (replace this with an actual API call)
-                    addMessage("Thanks for your message! I'll respond shortly.", 'bot');
+                    typingIndicator.remove(); // Remove typing indicator
+                    addMessage("Thanks for reaching out! How can I assist further?", 'bot');
                     awaitingResponse = false;
                 }, 1000);
             }
