@@ -225,7 +225,6 @@
             <button class="send-button" disabled>Send</button>
         </div>
     </div>
-
     <script>
         function auto_grow(element) {
             element.style.height = "1px";
@@ -281,10 +280,8 @@
                 input.style.height = '';
                 sendButton.disabled = true;
 
-                // Set awaiting flag
+                // Set awaiting flag and show typing indicator
                 awaitingResponse = true;
-
-                // Show typing indicator
                 const typingIndicator = showTypingIndicator();
 
                 // Send to backend
