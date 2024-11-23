@@ -200,7 +200,27 @@
             clear: both;
             display: table;
         }
-    </style>
+   .dark-mode .input-container {
+        background-color: rgb(38, 38, 38);
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .message-input-wrapper {
+        background-color: #1c1c1e;
+    }
+
+    .dark-mode .message-input {
+        color: #ffffff;
+    }
+
+    .dark-mode .message-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+
+    .dark-mode .dot {
+        background: #8e8e93;
+    }
+</style>
 </head>
 <body>
     <header class="header">
@@ -225,7 +245,7 @@
             <button class="send-button" disabled>Send</button>
         </div>
     </div>
-  <script>
+ <script>
     function auto_grow(element) {
         element.style.height = "1px";
         element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
@@ -237,8 +257,23 @@
         const input = document.querySelector('.message-input');
         const sendButton = document.querySelector('.send-button');
         const resetButton = document.querySelector('.reset-button');
+        const body = document.body;
+        const darkModeButton = document.querySelector('.dark-mode-button');
 
         let awaitingResponse = false;
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+        // Initialize dark mode state
+        if (isDarkMode) {
+            body.classList.add('dark-mode');
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            darkModeButton.textContent = isDarkMode ? '☀️' : '🌙';
+        }
 
         function getFormattedTime() {
             const now = new Date();
@@ -246,7 +281,7 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
-            hours = hours ? hours : 12; // Convert 0 to 12
+            hours = hours ? hours : 12;
             return `Today ${hours}:${minutes} ${ampm}`;
         }
 
@@ -369,6 +404,7 @@
 
         resetButton.addEventListener('click', resetChat);
         sendButton.addEventListener('click', sendMessage);
+        darkModeButton.addEventListener('click', toggleDarkMode);
 
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -376,6 +412,9 @@
                 sendMessage();
             }
         });
+
+        // Set initial dark mode button state
+        darkModeButton.textContent = isDarkMode ? '☀️' : '🌙';
     });
 </script>
 </body>
