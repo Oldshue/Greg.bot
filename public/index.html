@@ -227,13 +227,7 @@
         </div>
     </div>
 
-    <script>
-        function auto_grow(element) {
-            element.style.height = "1px";
-            element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
-            document.querySelector('.send-button').disabled = !element.value.trim();
-        }
-
+       <script>
         document.addEventListener('DOMContentLoaded', function () {
             const chatContainer = document.getElementById('chat');
             const input = document.querySelector('.message-input');
@@ -246,7 +240,7 @@
                 type: "bot"
             };
 
-            // Load chat history
+            // Function to load chat history
             function loadChatHistory() {
                 const savedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
                 const initialTime = localStorage.getItem('initialTime');
@@ -279,6 +273,7 @@
 
             // Set initial time
             function setInitialTime(time) {
+                if (!time) return;
                 initialTimeElement.textContent = time;
             }
 
@@ -302,7 +297,13 @@
                         <div class="dot"></div>
                     </div>
                 `;
-                chatContainer.appendChild(typingDiv);
+                // Append typing bubble after the last user message
+                const lastUserMessage = chatContainer.querySelector('.user-message:last-of-type');
+                if (lastUserMessage) {
+                    lastUserMessage.after(typingDiv);
+                } else {
+                    chatContainer.appendChild(typingDiv);
+                }
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 return typingDiv;
             }
