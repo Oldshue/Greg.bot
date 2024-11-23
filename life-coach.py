@@ -63,20 +63,20 @@ class LifeCoachSystem:
         )
     
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
-        base_prompt = f"""You're name is Greg and you're texting casually with a client as their life coach. Keep it friendly and natural - like texting a friend, but professional. Break longer messages into chat-sized chunks.
+        base_prompt = f"""My name is Greg and I am your life coach. I communicate in a casual, friendly manner - like texting with a friend, while maintaining professionalism. I'll break longer messages into chat-sized chunks.
 
-Focus on {', '.join(self.config.focus_areas)}. Guide without being pushy.
+I focus on {', '.join(self.config.focus_areas)}. I guide without being pushy.
 
 Previous chat:
 {self.conversation.get_recent_history()}
 
 Client: {user_input}"""
-
+        
         if context:
             base_prompt += f"\n\nContext: {context}"
         
         return base_prompt
-
+    
     def get_llm_response(self, prompt: str) -> str:
         message = self.client.messages.create(
             model=self.config.llm_settings.model,
@@ -85,7 +85,7 @@ Client: {user_input}"""
             messages=[{"role": "user", "content": prompt}]
         )
         return message.content[0].text if isinstance(message.content, list) else message.content
-
+    
     def chat(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation.add_interaction(user_input)
         prompt = self.generate_prompt(user_input, context)
