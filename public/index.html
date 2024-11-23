@@ -225,7 +225,7 @@
             <button class="send-button" disabled>Send</button>
         </div>
     </div>
-   <script>
+  <script>
     function auto_grow(element) {
         element.style.height = "1px";
         element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
@@ -239,6 +239,16 @@
         const resetButton = document.querySelector('.reset-button');
 
         let awaitingResponse = false;
+
+        function getFormattedTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // Convert 0 to 12
+            return `Today ${hours}:${minutes} ${ampm}`;
+        }
 
         function loadChatHistory() {
             const savedChat = localStorage.getItem('chatHistory');
@@ -272,7 +282,7 @@
 
         function resetChat() {
             chatContainer.innerHTML = `
-                <div class="time-stamp">Today</div>
+                <div class="time-stamp">${getFormattedTime()}</div>
                 <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
             `;
             input.value = '';
@@ -351,6 +361,10 @@
             }
         }
 
+        // If no chat history, set initial timestamp
+        if (!localStorage.getItem('chatHistory')) {
+            chatContainer.querySelector('.time-stamp').textContent = getFormattedTime();
+        }
         loadChatHistory();
 
         resetButton.addEventListener('click', resetChat);
