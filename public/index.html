@@ -210,11 +210,10 @@
     </header>
 
     <div id="chat" class="chat-container">
-        <div class="time-stamp">
-            Today <span id="initial-time"></span>
-        </div>
+        <div class="time-stamp">Today</div>
         <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
     </div>
+
     <div class="input-container">
         <div class="message-input-wrapper">
             <textarea 
@@ -226,158 +225,114 @@
             <button class="send-button" disabled>Send</button>
         </div>
     </div>
+   <script>
+    function auto_grow(element) {
+        element.style.height = "1px";
+        element.style.height = (Math.min(element.scrollHeight, 200)) + "px";
+        document.querySelector('.send-button').disabled = !element.value.trim();
+    }
 
-       <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const chatContainer = document.getElementById('chat');
-            const input = document.querySelector('.message-input');
-            const sendButton = document.querySelector('.send-button');
-            const resetButton = document.querySelector('.reset-button');
-            const initialTimeElement = document.getElementById('initial-time');
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('chat');
+        const input = document.querySelector('.message-input');
+        const sendButton = document.querySelector('.send-button');
+        const resetButton = document.querySelector('.reset-button');
 
-            const initialMessage = {
-                text: "Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?",
-                type: "bot"
-            };
+        let awaitingResponse = false;
 
-            // Function to load chat history
-            function loadChatHistory() {
-                const savedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
-                const initialTime = localStorage.getItem('initialTime');
+        function showTypingIndicator() {
+            const clearDiv = document.createElement('div');
+            clearDiv.className = 'clearfix';
+            chatContainer.appendChild(clearDiv);
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator clearfix';
+            typingDiv.innerHTML = `
+                <div class="typing-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            `;
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return typingDiv;
+        }
 
-                if (!savedMessages.length) {
-                    // If no chat history, add initial message and timestamp
-                    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-                    localStorage.setItem('initialTime', now);
-                    setInitialTime(now);
-                    savedMessages.push(initialMessage);
-                    localStorage.setItem('chatHistory', JSON.stringify(savedMessages));
-                } else {
-                    setInitialTime(initialTime);
-                }
+        function resetChat() {
+            chatContainer.innerHTML = `
+                <div class="time-stamp">Today</div>
+                <div class="message bot-message clearfix">Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?</div>
+            `;
+            input.value = '';
+            input.style.height = '';
+            sendButton.disabled = true;
+            awaitingResponse = false;
+        }
 
-                // Render chat history
-                savedMessages.forEach(({ text, type }) => {
-                    addMessage(text, type);
-                });
-            }
+        function sendMessage() {
+            if (awaitingResponse) return;
 
-            // Save chat history to localStorage
-            function saveChatHistory() {
-                const messages = Array.from(chatContainer.querySelectorAll('.message')).map(messageDiv => ({
-                    text: messageDiv.textContent,
-                    type: messageDiv.classList.contains('bot-message') ? 'bot' : 'user'
-                }));
-                localStorage.setItem('chatHistory', JSON.stringify(messages));
-            }
+            const message = input.value.trim();
+            if (!message) return;
 
-            // Set initial time
-            function setInitialTime(time) {
-                if (!time) return;
-                initialTimeElement.textContent = time;
-            }
+            // Set awaiting flag
+            awaitingResponse = true;
 
-            // Add a message to the chat
-            function addMessage(text, type) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${type}-message clearfix`;
-                messageDiv.textContent = text;
-                chatContainer.appendChild(messageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
+            // Add user message
+            addMessage(message, 'user');
 
-            // Show typing indicator
-            function showTypingIndicator() {
-                const typingDiv = document.createElement('div');
-                typingDiv.className = 'typing-indicator clearfix';
-                typingDiv.innerHTML = `
-                    <div class="typing-dots">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                `;
-                // Append typing bubble after the last user message
-                const lastUserMessage = chatContainer.querySelector('.user-message:last-of-type');
-                if (lastUserMessage) {
-                    lastUserMessage.after(typingDiv);
-                } else {
-                    chatContainer.appendChild(typingDiv);
-                }
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                return typingDiv;
-            }
+            // Clear input and reset height
+            input.value = '';
+            input.style.height = '';
+            sendButton.disabled = true;
 
-            // Remove typing indicator
-            function removeTypingIndicator(typingDiv) {
-                if (typingDiv) typingDiv.remove();
-            }
-
-            // Send a message
-            function sendMessage() {
-                const message = input.value.trim();
-                if (!message) return;
-
-                // Add user's message
-                addMessage(message, 'user');
-                input.value = '';
-                input.style.height = '';
-                sendButton.disabled = true;
-
-                // Show typing indicator
+            // Small delay before showing typing indicator
+            setTimeout(() => {
                 const typingIndicator = showTypingIndicator();
 
-                // Simulate backend response
+                // Send to backend
                 fetch('/api/ask', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ question: message }),
+                    body: JSON.stringify({ question: message })
                 })
-                .then((response) => response.json())
-                .then((data) => {
-                    // Remove typing indicator and show bot's response
-                    removeTypingIndicator(typingIndicator);
+                .then(response => response.json())
+                .then(data => {
+                    typingIndicator.remove();
                     if (data.response) {
                         addMessage(data.response, 'bot');
-                    } else {
-                        addMessage("Sorry, I couldn't understand that. Please try again!", 'bot');
                     }
-                    saveChatHistory();
+                    awaitingResponse = false;
                 })
-                .catch((error) => {
-                    removeTypingIndicator(typingIndicator);
+                .catch(error => {
+                    typingIndicator.remove();
                     console.error('Error:', error);
-                    addMessage("There was an error connecting to the server. Please try again.", 'bot');
-                    saveChatHistory();
+                    awaitingResponse = false;
                 });
+            }, 500);
+        }
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message clearfix`;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        resetButton.addEventListener('click', resetChat);
+        sendButton.addEventListener('click', sendMessage);
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
             }
-
-            // Reset the chat
-            function resetChat() {
-                localStorage.removeItem('chatHistory');
-                localStorage.removeItem('initialTime');
-                chatContainer.innerHTML = '';
-                const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-                setInitialTime(now);
-                addMessage(initialMessage.text, 'bot');
-                saveChatHistory();
-            }
-
-            // Load chat history on page load
-            loadChatHistory();
-
-            // Event listeners
-            resetButton.addEventListener('click', resetChat);
-            sendButton.addEventListener('click', sendMessage);
-            input.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
         });
-    </script>
+    });
+</script>
 </body>
 </html>
