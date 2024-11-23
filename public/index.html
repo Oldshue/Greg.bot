@@ -241,13 +241,10 @@
         let awaitingResponse = false;
 
         function showTypingIndicator() {
-            // Remove any existing typing indicator
-            const existingIndicator = document.querySelector('.typing-indicator');
-            if (existingIndicator) {
-                existingIndicator.remove();
-            }
+            const clearDiv = document.createElement('div');
+            clearDiv.className = 'clearfix';
+            chatContainer.appendChild(clearDiv);
             
-            // Create new typing indicator
             const typingDiv = document.createElement('div');
             typingDiv.className = 'typing-indicator clearfix';
             typingDiv.innerHTML = `
@@ -257,8 +254,6 @@
                     <div class="dot"></div>
                 </div>
             `;
-            
-            // Add it to chat and scroll
             chatContainer.appendChild(typingDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             return typingDiv;
