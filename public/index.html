@@ -6,201 +6,240 @@
     <title>Greg.bot</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
-        .header {
-            background-color: #ffffff;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-            height: 52px;
-            border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-            padding: 0 16px;
-            box-sizing: border-box;
-            display: grid;
-            grid-template-columns: calc(100% * 2/7) auto calc(100% * 2/7);
-            align-items: center;
-        }
+    .header {
+        background-color: #ffffff;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 100;
+        height: 52px;
+        border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+        padding: 0 16px;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: calc(100% * 2/7) auto calc(100% * 2/7);
+        align-items: center;
+    }
 
-        .reset-button {
-            color: #007aff;
-            background: none;
-            border: none;
-            padding: 8px 0;
-            cursor: pointer;
-            text-align: right;
-            padding-right: 16px;
-        }
+    .reset-button {
+        color: #007aff;
+        background: none;
+        border: none;
+        padding: 8px 0;
+        cursor: pointer;
+        text-align: right;
+        padding-right: 16px;
+    }
 
-        .header h1 {
-            margin: 0;
-            font-size: 16px;
-            color: #000000;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            font-family: 'Inter', sans-serif;
-            text-align: center;
-        }
+    .dark-mode-button {
+        color: #007aff;
+        background: none;
+        border: none;
+        padding: 8px 0;
+        cursor: pointer;
+        font-size: 16px;
+        text-align: left;
+        padding-left: 16px;
+    }
 
-        .chat-container {
-            padding: 70px 1rem 140px 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            overflow-y: auto;
-            height: calc(100vh - 210px);
-        }
+    .header h1 {
+        margin: 0;
+        font-size: 16px;
+        color: #000000;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        font-family: 'Inter', sans-serif;
+        text-align: center;
+    }
 
-        .time-stamp {
-            text-align: center;
-            color: rgba(0, 0, 0, 0.4);
-            font-size: 12px;
-            margin: 1rem 0;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
-        }
+    .chat-container {
+        padding: 70px 1rem 140px 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        overflow-y: auto;
+        height: calc(100vh - 210px);
+    }
 
-        .message {
-            margin: 0.5rem 0;
-            max-width: 80%;
-            clear: both;
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-            line-height: 1.4;
-            font-weight: 500;
-        }
+    .time-stamp {
+        text-align: center;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 12px;
+        margin: 1rem 0;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+    }
 
-        .bot-message {
-            float: left;
-            background-color: #e9e9eb;
-            border-radius: 18px;
-            padding: 0.8rem 1rem;
-            margin-right: 2rem;
-            color: #000;
-        }
+    .message {
+        margin: 0.5rem 0;
+        max-width: 80%;
+        clear: both;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        line-height: 1.4;
+        font-weight: 500;
+    }
 
-        .user-message {
-            float: right;
-            background-color: #007aff;
-            border-radius: 18px;
-            padding: 0.8rem 1rem;
-            margin-left: 2rem;
-            color: #fff;
-        }
+    .bot-message {
+        float: left;
+        background-color: #e9e9eb;
+        border-radius: 18px;
+        padding: 0.8rem 1rem;
+        margin-right: 2rem;
+        color: #000;
+    }
 
-        .typing-indicator {
-            float: left;
-            background-color: #e9e9eb;
-            border-radius: 18px;
-            padding: 1rem;
-            margin: 0.5rem 0;
-            width: 55px;
-        }
+    .user-message {
+        float: right;
+        background-color: #007aff;
+        border-radius: 18px;
+        padding: 0.8rem 1rem;
+        margin-left: 2rem;
+        color: #fff;
+    }
 
-        .typing-dots {
-            display: flex;
-            justify-content: center;
-            gap: 4px;
-        }
+    .typing-indicator {
+        float: left;
+        background-color: #e9e9eb;
+        border-radius: 18px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        width: 55px;
+    }
 
-        .dot {
-            width: 7px;
-            height: 7px;
-            background: #8e8e93;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: typing 1.4s infinite;
-        }
+    .typing-dots {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+    }
 
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
+    .dot {
+        width: 7px;
+        height: 7px;
+        background: #8e8e93;
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: typing 1.4s infinite;
+    }
 
-        @keyframes typing {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
 
-        .input-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: rgb(249, 249, 249);
-            padding: 8px 16px;
-            display: flex;
-            align-items: flex-end;
-            min-height: 44px;
-            border-top: 0.5px solid rgba(0, 0, 0, 0.1);
-        }
+    @keyframes typing {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 1; }
+    }
 
-        .message-input-wrapper {
-            position: relative;
-            flex: 1;
-            background: white;
-            border-radius: 32px;
-            margin-right: 16px;
-            padding: 4px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-        }
+    .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgb(249, 249, 249);
+        padding: 8px 16px;
+        display: flex;
+        align-items: flex-end;
+        min-height: 44px;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+    }
 
-        .message-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            padding: 8px 60px 8px 16px;
-            font-size: 17px;
-            line-height: 1.35;
-            max-height: 200px;
-            resize: none;
-            outline: none;
-            margin: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            letter-spacing: -0.01em;
-            color: #000000;
-        }
+    .message-input-wrapper {
+        position: relative;
+        flex: 1;
+        background: white;
+        border-radius: 32px;
+        margin-right: 16px;
+        padding: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
 
-        .message-input::placeholder {
-            color: rgba(0, 0, 0, 0.3);
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-        }
+    .message-input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: 8px 60px 8px 16px;
+        font-size: 17px;
+        line-height: 1.35;
+        max-height: 200px;
+        resize: none;
+        outline: none;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: #000000;
+    }
 
-        .send-button {
-            position: absolute;
-            right: 8px;
-            bottom: 50%;
-            transform: translateY(50%);
-            border: none;
-            background: none;
-            color: #007aff;
-            font-size: 16px;
-            font-weight: 700;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-        }
+    .message-input::placeholder {
+        color: rgba(0, 0, 0, 0.3);
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+    }
 
-        .send-button:disabled {
-            color: rgba(0, 122, 255, 0.5);
-            cursor: default;
-        }
+    .send-button {
+        position: absolute;
+        right: 8px;
+        bottom: 50%;
+        transform: translateY(50%);
+        border: none;
+        background: none;
+        color: #007aff;
+        font-size: 16px;
+        font-weight: 700;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+    }
 
-        /* Clear fix for floating messages */
-        .clearfix::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-   .dark-mode .input-container {
+    .send-button:disabled {
+        color: rgba(0, 122, 255, 0.5);
+        cursor: default;
+    }
+
+    /* Clear fix for floating messages */
+    .clearfix::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    /* Dark mode styles */
+    body.dark-mode {
+        background-color: #000000;
+    }
+
+    .dark-mode .header {
+        background-color: #000000;
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .header h1 {
+        color: #ffffff;
+    }
+
+    .dark-mode .time-stamp {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .dark-mode .bot-message {
+        background-color: #1c1c1e;
+        color: #ffffff;
+    }
+
+    .dark-mode .typing-indicator {
+        background-color: #1c1c1e;
+    }
+
+    .dark-mode .input-container {
         background-color: rgb(38, 38, 38);
         border-top-color: rgba(255, 255, 255, 0.1);
     }
