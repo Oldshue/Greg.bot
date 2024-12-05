@@ -2,6 +2,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from anthropic import Anthropic
 import os
+import re
 
 class LifeCoachSystem:
     def __init__(self):
@@ -18,8 +19,8 @@ class LifeCoachSystem:
             },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-2.1",
-                    "max_tokens": 200,
+                    "model": "claude-3-opus-20240229",
+                    "max_tokens": 1024,
                     "temperature": 0.8
                 }
             }
@@ -50,7 +51,6 @@ Client's message: {user_input}"""
 
     def parse_reminder(self, response: str) -> Optional[Dict]:
         # Example: <reminder>time=08:30 recurring=daily</reminder>
-        import re
         reminder_match = re.search(r'<reminder>(.*?)</reminder>', response)
         if reminder_match:
             reminder_text = reminder_match.group(1)
@@ -63,16 +63,17 @@ Client's message: {user_input}"""
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        completion = self.client.completions.create(
+        message = self.client.messages.create(
             model=settings["model"],
-            max_tokens_to_sample=settings["max_tokens"],
+            max_tokens=settings["max_tokens"],
             temperature=settings["temperature"],
-            prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
-            stop_sequences=["\nHuman:", "\n\nHuman:"]
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return completion.completion
+        return message.content[0].text
 
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> Dict:
+    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
             "timestamp": datetime.now().isoformat(),
             "interaction": user_input
@@ -85,7 +86,5 @@ Client's message: {user_input}"""
         # Remove reminder tags from response if present
         clean_response = re.sub(r'<reminder>.*?</reminder>', '', response).strip()
         
-        return {
-            "response": clean_response,
-            "notification": reminder
-        }
+        # For now, just return the response text to maintain compatibility
+        return clean_response
