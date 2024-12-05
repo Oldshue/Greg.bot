@@ -18,8 +18,8 @@ class LifeCoachSystem:
             },
             "llm_settings": {
                 "anthropic": {
-                    "model": "claude-3-opus-20240229",
-                    "max_tokens": 1024,
+                    "model": "claude-2.1",
+                    "max_tokens": 400,
                     "temperature": 0.8
                 }
             }
@@ -48,15 +48,14 @@ Client's message: {user_input}"""
 
     def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
-        message = self.client.messages.create(
+        completion = self.client.completions.create(
             model=settings["model"],
-            max_tokens=settings["max_tokens"],
+            max_tokens_to_sample=settings["max_tokens"],
             temperature=settings["temperature"],
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+            prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
+            stop_sequences=["\nHuman:", "\n\nHuman:"]
         )
-        return message.content[0].text
+        return completion.completion
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
         self.conversation_history.append({
