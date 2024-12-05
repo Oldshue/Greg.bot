@@ -1,7 +1,10 @@
-from typing import Dict, List, Optional
+# life_coach.py
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
+import json
 from anthropic import Anthropic
 import os
+import re
 
 class LifeCoachSystem:
     def __init__(self):
@@ -19,7 +22,7 @@ class LifeCoachSystem:
             "llm_settings": {
                 "anthropic": {
                     "model": "claude-2.1",
-                    "max_tokens": 200,  # Reduced from 400 to 200
+                    "max_tokens": 200,
                     "temperature": 0.8
                 }
             }
@@ -30,7 +33,14 @@ class LifeCoachSystem:
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         base_prompt = f"""Your name is Greg and you're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
 Keep responses to 2-3 sentences max. Use natural language and occasional emoji.
-If you ask a follow-up question, keep it brief.
+If the user asks for a reminder or to be notified about something, include a JSON notification object in your response using the format:
+NOTIFICATION_START{{
+    "task": "The specific task or reminder",
+    "scheduledTime": "HH:MM",
+    "date": "YYYY-MM-DD",  // Optional, if not provided assumes daily
+    "priority": "high|medium|low",
+    "recurrence": "daily|weekly|once"  // How often to repeat
+}}NOTIFICATION_END
 
 Previous messages:
 {self.format_history()}
@@ -47,7 +57,23 @@ Client's message: {user_input}"""
             return "No previous conversation"
         return "\n".join([f"{entry['interaction']}" for entry in self.conversation_history[-2:]])
 
-    def get_llm_response(self, prompt: str) -> str:
+    def extract_notification_data(self, response: str) -> Tuple[str, Optional[Dict]]:
+        # Extract notification JSON if present
+        notification_match = re.search(r'NOTIFICATION_START({.*?})NOTIFICATION_END', response, re.DOTALL)
+        
+        if notification_match:
+            notification_json = notification_match.group(1)
+            # Remove the notification data from the response
+            clean_response = response.replace(f"NOTIFICATION_START{notification_json}NOTIFICATION_END", "").strip()
+            try:
+                notification_data = json.loads(notification_json)
+                return clean_response, notification_data
+            except json.JSONDecodeError:
+                return response, None
+        
+        return response, None
+
+    def get_llm_response(self, prompt: str) -> Tuple[str, Optional[Dict]]:
         settings = self.config["llm_settings"]["anthropic"]
         completion = self.client.completions.create(
             model=settings["model"],
@@ -56,13 +82,18 @@ Client's message: {user_input}"""
             prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
             stop_sequences=["\nHuman:", "\n\nHuman:"]
         )
-        return completion.completion
+        response = completion.completion
+        return self.extract_notification_data(response)
 
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
+    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> Dict:
         self.conversation_history.append({
             "timestamp": datetime.now().isoformat(),
             "interaction": user_input
         })
         prompt = self.generate_prompt(user_input, context)
-        response = self.get_llm_response(prompt)
-        return response
+        response, notification_data = self.get_llm_response(prompt)
+        
+        return {
+            "response": response,
+            "notification": notification_data
+        }
