@@ -1,10 +1,7 @@
-# life_coach.py
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from datetime import datetime
-import json
 from anthropic import Anthropic
 import os
-import re
 
 class LifeCoachSystem:
     def __init__(self):
@@ -33,14 +30,8 @@ class LifeCoachSystem:
     def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
         base_prompt = f"""Your name is Greg and you're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
 Keep responses to 2-3 sentences max. Use natural language and occasional emoji.
-If the user asks for a reminder or to be notified about something, include a JSON notification object in your response using the format:
-NOTIFICATION_START{{
-    "task": "The specific task or reminder",
-    "scheduledTime": "HH:MM",
-    "date": "YYYY-MM-DD",  // Optional, if not provided assumes daily
-    "priority": "high|medium|low",
-    "recurrence": "daily|weekly|once"  // How often to repeat
-}}NOTIFICATION_END
+If you need to set a reminder, include it in <reminder> tags with the format:
+time=HH:MM date=YYYY-MM-DD (optional) recurring=daily|weekly|none
 
 Previous messages:
 {self.format_history()}
@@ -57,23 +48,20 @@ Client's message: {user_input}"""
             return "No previous conversation"
         return "\n".join([f"{entry['interaction']}" for entry in self.conversation_history[-2:]])
 
-    def extract_notification_data(self, response: str) -> Tuple[str, Optional[Dict]]:
-        # Extract notification JSON if present
-        notification_match = re.search(r'NOTIFICATION_START({.*?})NOTIFICATION_END', response, re.DOTALL)
-        
-        if notification_match:
-            notification_json = notification_match.group(1)
-            # Remove the notification data from the response
-            clean_response = response.replace(f"NOTIFICATION_START{notification_json}NOTIFICATION_END", "").strip()
-            try:
-                notification_data = json.loads(notification_json)
-                return clean_response, notification_data
-            except json.JSONDecodeError:
-                return response, None
-        
-        return response, None
+    def parse_reminder(self, response: str) -> Optional[Dict]:
+        # Example: <reminder>time=08:30 recurring=daily</reminder>
+        import re
+        reminder_match = re.search(r'<reminder>(.*?)</reminder>', response)
+        if reminder_match:
+            reminder_text = reminder_match.group(1)
+            reminder_data = {}
+            for pair in reminder_text.split():
+                key, value = pair.split('=')
+                reminder_data[key] = value
+            return reminder_data
+        return None
 
-    def get_llm_response(self, prompt: str) -> Tuple[str, Optional[Dict]]:
+    def get_llm_response(self, prompt: str) -> str:
         settings = self.config["llm_settings"]["anthropic"]
         completion = self.client.completions.create(
             model=settings["model"],
@@ -82,8 +70,7 @@ Client's message: {user_input}"""
             prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
             stop_sequences=["\nHuman:", "\n\nHuman:"]
         )
-        response = completion.completion
-        return self.extract_notification_data(response)
+        return completion.completion
 
     def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> Dict:
         self.conversation_history.append({
@@ -91,9 +78,14 @@ Client's message: {user_input}"""
             "interaction": user_input
         })
         prompt = self.generate_prompt(user_input, context)
-        response, notification_data = self.get_llm_response(prompt)
+        response = self.get_llm_response(prompt)
+        
+        # Extract any reminder data
+        reminder = self.parse_reminder(response)
+        # Remove reminder tags from response if present
+        clean_response = re.sub(r'<reminder>.*?</reminder>', '', response).strip()
         
         return {
-            "response": response,
-            "notification": notification_data
+            "response": clean_response,
+            "notification": reminder
         }
