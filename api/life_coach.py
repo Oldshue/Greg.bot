@@ -15,19 +15,12 @@ class LifeCoachSystem:
                 "goal_setting": "SMART",
                 "decision_making": "pros_cons",
                 "accountability": "weekly_check_ins"
-            },
-            "llm_settings": {
-                "anthropic": {
-                    "model": "claude-2.1",
-                    "max_tokens": 400,
-                    "temperature": 0.8
-                }
             }
         }
         self.conversation_history = []
         self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
-    def generate_prompt(self, user_input: str, context: Optional[Dict] = None) -> str:
+    def generate_prompt(self, user_input: str) -> str:
         base_prompt = f"""Your name is Greg and you're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
 Keep responses to 2-3 sentences max. Use natural language and occasional emoji.
 
@@ -35,10 +28,6 @@ Previous messages:
 {self.format_history()}
 
 Client's message: {user_input}"""
-
-        if context:
-            base_prompt += f"\nContext: {context}"
-        
         return base_prompt
 
     def format_history(self) -> str:
@@ -46,22 +35,16 @@ Client's message: {user_input}"""
             return "No previous conversation"
         return "\n".join([f"{entry['interaction']}" for entry in self.conversation_history[-2:]])
 
-    def get_llm_response(self, prompt: str) -> str:
-        settings = self.config["llm_settings"]["anthropic"]
-        completion = self.client.completions.create(
-            model=settings["model"],
-            max_tokens_to_sample=settings["max_tokens"],
-            temperature=settings["temperature"],
-            prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
-            stop_sequences=["\nHuman:", "\n\nHuman:"]
-        )
-        return completion.completion
-
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
+    def process_user_input(self, user_input: str) -> str:
         self.conversation_history.append({
             "timestamp": datetime.now().isoformat(),
             "interaction": user_input
         })
-        prompt = self.generate_prompt(user_input, context)
-        response = self.get_llm_response(prompt)
-        return response
+        prompt = self.generate_prompt(user_input)
+        message = self.client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=1024,
+            temperature=0.7,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return message.content[0].text
