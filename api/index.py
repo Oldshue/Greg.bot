@@ -27,10 +27,10 @@ def ask():
     try:
         question = request.json.get('question')
         result = coach.process_user_input(question)
-        # Return just the response text to maintain compatibility
-        return jsonify({'response': result['response']})
+        return jsonify(result)  # Returns both response and notification
     except Exception as e:
-        return jsonify({'response': str(e)}), 500
+        print(f"Error processing request: {str(e)}")  # Add logging
+        return jsonify({'response': f"Error: {str(e)}", 'notification': None}), 500
 
 @app.after_request
 def after_request(response):
