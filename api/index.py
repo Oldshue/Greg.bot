@@ -25,11 +25,15 @@ def ask():
         return '', 200
         
     try:
+        print("Received request:", request.json)  # Debug
         question = request.json.get('question')
         result = coach.process_user_input(question)
-        return jsonify(result)  # Returns both response and notification
+        print("Sending response:", result)  # Debug
+        return jsonify(result)
     except Exception as e:
-        print(f"Error processing request: {str(e)}")  # Add logging
+        print(f"Error in ask endpoint: {str(e)}")  # Debug
+        import traceback
+        traceback.print_exc()  # Print full stack trace
         return jsonify({'response': f"Error: {str(e)}", 'notification': None}), 500
 
 @app.after_request
