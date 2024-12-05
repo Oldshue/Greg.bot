@@ -25,11 +25,10 @@ def ask():
         return '', 200
         
     try:
-        question = request.json.get('question')
+        question = request.json.get('question', '')
         response = coach.process_user_input(question)
         return jsonify({'response': response})
     except Exception as e:
-        print(f"Error in ask endpoint: {str(e)}")
         return jsonify({'response': str(e)}), 500
 
 @app.after_request
