@@ -1,4 +1,3 @@
-# index.py
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
@@ -27,10 +26,11 @@ def ask():
         
     try:
         question = request.json.get('question')
-        response_data = coach.process_user_input(question)
-        return jsonify(response_data)
+        result = coach.process_user_input(question)
+        # Return just the response text to maintain compatibility
+        return jsonify({'response': result['response']})
     except Exception as e:
-        return jsonify({'response': None, 'notification': None, 'error': str(e)}), 500
+        return jsonify({'response': str(e)}), 500
 
 @app.after_request
 def after_request(response):
