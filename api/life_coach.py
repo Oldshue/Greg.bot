@@ -30,8 +30,8 @@ Client's message: {user_input}"""
         })
         prompt = self.generate_prompt(user_input)
         completion = self.client.completion(
+            model="claude-2.0",
             prompt=f"{HUMAN_PROMPT} {prompt} {AI_PROMPT}",
-            model="claude-2.1",
             max_tokens_to_sample=300,
             stop_sequences=[HUMAN_PROMPT]
         )
