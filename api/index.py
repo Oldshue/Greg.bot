@@ -27,9 +27,9 @@ def ask():
     try:
         question = request.json.get('question')
         response = coach.process_user_input(question)
-        return jsonify({'response': response})
+        return jsonify({'response': response, 'error': None})
     except Exception as e:
-        return jsonify({'response': str(e)}), 500
+        return jsonify({'response': None, 'error': str(e)}), 500
 
 @app.after_request
 def after_request(response):
