@@ -1,12 +1,12 @@
 from typing import Dict, List, Optional
 from datetime import datetime
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from anthropic import Client
 import os
 
 class LifeCoachSystem:
     def __init__(self):
         self.conversation_history = []
-        self.client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+        self.client = Client(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str) -> str:
         base_prompt = f"""Your name is Greg and you're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
@@ -29,10 +29,10 @@ Client's message: {user_input}"""
             "interaction": user_input
         })
         prompt = self.generate_prompt(user_input)
-        completion = self.client.completion(
-            model="claude-2.0",
-            prompt=f"{HUMAN_PROMPT} {prompt} {AI_PROMPT}",
+        completion = self.client.complete(
+            prompt=prompt,
+            model="claude-v1",
             max_tokens_to_sample=300,
-            stop_sequences=[HUMAN_PROMPT]
+            stop_sequences=["Human:", "Assistant:"]
         )
-        return completion.completion
+        return completion
