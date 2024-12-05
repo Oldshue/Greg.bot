@@ -73,7 +73,7 @@ Client's message: {user_input}"""
         )
         return message.content[0].text
 
-    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> str:
+    def process_user_input(self, user_input: str, context: Optional[Dict] = None) -> Dict:
         self.conversation_history.append({
             "timestamp": datetime.now().isoformat(),
             "interaction": user_input
@@ -84,7 +84,9 @@ Client's message: {user_input}"""
         # Extract any reminder data
         reminder = self.parse_reminder(response)
         # Remove reminder tags from response if present
-        clean_response = re.sub(r'<reminder>.*?</reminder>', '', response).strip()
+        clean_response = re.sub(r'<reminder>.*?)</reminder>', '', response).strip()
         
-        # For now, just return the response text to maintain compatibility
-        return clean_response
+        return {
+            "response": clean_response,
+            "notification": reminder
+        }
