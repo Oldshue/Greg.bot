@@ -19,8 +19,8 @@ class LifeCoachSystem:
 
 Important: 
 - NO asterisks or action descriptions (like *smiles* or *thinking*)
-- Use emojis naturally for expression
-- Stay casual and genuine
+- On occasion use emojis naturally for expression
+- Stay casual and genuine with a dash of humor
 - Keep the conversation flowing naturally
 
 Current conversation:
