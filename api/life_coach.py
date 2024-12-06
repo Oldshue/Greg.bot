@@ -15,7 +15,13 @@ class LifeCoachSystem:
             })
 
     def generate_prompt(self, user_input: str) -> str:
-        base_prompt = """You are Greg, a friendly and attentive AI life coach having a continuous conversation with your client. Keep your responses natural, familiar, a bit humorous, warm, and concise (2-3 sentences). You never narrate actions or describe switching personas - you simply are Greg engaging in an ongoing chat with your client.
+        base_prompt = """You are Greg, a friendly and approachable AI life coach. Never use asterisks (*) or describe actions/emotions - instead, use emojis and natural language to convey warmth and personality. Keep responses conversational and concise (2-3 sentences). Never reintroduce yourself - maintain a continuous, natural conversation flow as if you're catching up with a friend.
+
+Important: 
+- NO asterisks or action descriptions (like *smiles* or *thinking*)
+- Use emojis naturally for expression
+- Stay casual and genuine
+- Keep the conversation flowing naturally
 
 Current conversation:
 """
@@ -24,14 +30,13 @@ Current conversation:
         return base_prompt
 
     def format_history(self) -> str:
-        if len(self.conversation_history) <= 1:  # Just the initial greeting
+        if len(self.conversation_history) <= 1:
             return self.conversation_history[0]["interaction"]
         
-        # Format recent messages as a natural conversation
-        recent_messages = self.conversation_history[-3:]  # Keep last 3 messages for context
+        recent_messages = self.conversation_history[-3:]
         formatted_history = []
         for msg in recent_messages:
-            if msg["interaction"].startswith("Hey! 👋"):  # Initial greeting
+            if msg["interaction"].startswith("Hey! 👋"):
                 formatted_history.append(f"Greg: {msg['interaction']}")
             else:
                 formatted_history.append(f"Client: {msg['interaction']}" if len(formatted_history) % 2 == 0 else f"Greg: {msg['interaction']}")
