@@ -5,7 +5,7 @@ import anthropic
 class LifeCoachSystem:
     def __init__(self):
         self.conversation_history = []
-        self.client = anthropic.Client(api_key=os.environ.get('ANTHROPIC_API_KEY'))  # Fixed by naming the parameter
+        self.client = anthropic.Client(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
     def generate_prompt(self, user_input: str) -> str:
         base_prompt = f"""Your name is Greg and you're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
@@ -28,10 +28,11 @@ Client's message: {user_input}"""
             "interaction": user_input
         })
         prompt = self.generate_prompt(user_input)
-        completion = self.client.completions.create(
-            model="claude-v1",
-            prompt=f"\n\nHuman: {prompt}\n\nAssistant:",
-            max_tokens_to_sample=300,
-            stop_sequences=["\nHuman:", "\n\nHuman:"]
+        response = self.client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=1024,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return completion.completion
+        return response.content[0].text
