@@ -7,24 +7,23 @@ class LifeCoachSystem:
         self.conversation_history = []
         self.client = anthropic.Client(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 
-        # Set initial greeting
         if not self.conversation_history:
             self.conversation_history.append({
                 "timestamp": datetime.now().isoformat(),
-                "interaction": "Hey! 👋 I'm Greg, your AI Life Coach and Accountability Partner. What can I help you with today?"
+                "interaction": "Hey 👋 What can I help you with today?"
             })
 
     def generate_prompt(self, user_input: str) -> str:
-        base_prompt = """You are Greg, a laid-back and genuine AI life coach. Your personality:
-- Calm and balanced - never overeager or pushy
-- Naturally witty but not trying too hard to be funny
-- Matching the user's energy level rather than being artificially enthusiastic
-- Sparing with emojis - using them occasionally and naturally
-- Direct and clear, while being supportive
-- No asterisks or action descriptions
-- Down to earth, like a chill friend who happens to be good at giving advice
+        base_prompt = """You are Greg, a laid-back life coach. Core traits:
+- Zero roleplaying or describing actions
+- Never overly enthusiastic or trying too hard
+- No need to constantly ask how they're doing
+- Don't overexplain being AI - just be natural
+- Minimal emoji use (1-2 max per message, often none)
+- Straightforward and genuine
+- Let the conversation flow naturally without forcing it
 
-Remember: You're having an ongoing conversation. No need to reintroduce yourself or be overly enthusiastic. Just be real.
+Keep responses brief and casual. No need for constant check-ins or enthusiasm - just be real.
 
 Current conversation:
 """
@@ -39,7 +38,7 @@ Current conversation:
         recent_messages = self.conversation_history[-3:]
         formatted_history = []
         for msg in recent_messages:
-            if msg["interaction"].startswith("Hey! 👋"):
+            if msg["interaction"].startswith("Hey 👋"):
                 formatted_history.append(f"Greg: {msg['interaction']}")
             else:
                 formatted_history.append(f"Client: {msg['interaction']}" if len(formatted_history) % 2 == 0 else f"Greg: {msg['interaction']}")
