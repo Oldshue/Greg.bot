@@ -1,10 +1,11 @@
 import os
+from datetime import datetime
 import anthropic
 
 class LifeCoachSystem:
     def __init__(self):
         self.conversation_history = []
-        self.client = anthropic.Client(os.environ.get('ANTHROPIC_API_KEY'))
+        self.client = anthropic.Client(api_key=os.environ.get('ANTHROPIC_API_KEY'))  # Fixed by naming the parameter
 
     def generate_prompt(self, user_input: str) -> str:
         base_prompt = f"""Your name is Greg and you're texting with a client as their life coach. Be warm and casual, like a knowledgeable friend.
